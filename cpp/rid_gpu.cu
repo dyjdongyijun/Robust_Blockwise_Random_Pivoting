@@ -60,7 +60,7 @@ void Permute_Matrix_Rows(ivec &Perm, double *rawA, int m, int n, int LD) {
 
   dvec B(m*n);
   thrust::copy_n(elem1, m*n, B.begin());
-  print(B, m, n, "B");
+  //print(B, m, n, "B");
 
 
   auto iter2 = thrust::make_transform_iterator(zero, SchurIndex(m, LD));
@@ -74,7 +74,7 @@ void rid_gpu(const double *hA, int m, int n, double tol, int blk) {
   // copy matrix to gpu
   dvec A(m*n);
   thrust::copy(hA, hA+m*n, A.begin());
-  print(A, m, n, "A");
+  //print(A, m, n, "A");
  
   // allocate memory
   dvec LU(m*n); // same size as A
@@ -90,7 +90,7 @@ void rid_gpu(const double *hA, int m, int n, double tol, int blk) {
   // Random_Gaussian_Matrix(G, 0, 1.0/blk);  
   thrust::counting_iterator<int> start(0);
   thrust::transform(start, start+G.size(), G.begin(), prg(0., 1.0/blk));
-  print(G, n, blk, "G");
+  //print(G, n, blk, "G");
 
 
   // compute sample matrix
@@ -102,7 +102,7 @@ void rid_gpu(const double *hA, int m, int n, double tol, int blk) {
         thrust::raw_pointer_cast(A.data()), m,
         thrust::raw_pointer_cast(G.data()), n, &zero,
         thrust::raw_pointer_cast(LU.data()), m) );
-  print(LU, m, n, "LU");
+  //print(LU, m, n, "LU");
   
 
   int p  = std::min(m,n);
@@ -133,15 +133,16 @@ void rid_gpu(const double *hA, int m, int n, double tol, int blk) {
           thrust::raw_pointer_cast(ipiv.data()), 
           thrust::raw_pointer_cast(info.data()) ));
 
-    print(LU, m, n, "LU");
-    std::cout<<"info: "<<info[0]<<std::endl;
+    //std::cout<<"a: "<<a<<", b: "<<b<<std::endl;
+    //print(LU, m, n, "LU of new panel");
+    //std::cout<<"info: "<<info[0]<<std::endl;
     assert( info[0]==0 );
 
     // global permuation (accumulation of local permuations)
     for (int j=0; j<b; j++) {
-      int tmp = P[j];
-      P[j] = P[ ipiv[j]-1 ];
-      P[ ipiv[j]-1 ] = tmp;
+      int tmp = P[k+j];
+      P[k+j] = P[ k+ipiv[j]-1 ];
+      P[ k+ipiv[j]-1 ] = tmp;
     }
 
     // local permutation
@@ -153,12 +154,14 @@ void rid_gpu(const double *hA, int m, int n, double tol, int blk) {
       Phat[ ipiv[j]-1 ] = tmp;
     }
 
-    print(ipiv, "ipiv");
-    print(Phat, "Phat");
-    print(P, "P");
+    //print(ipiv, "ipiv");
+    //print(Phat, "Phat");
+    //print(P, "P");
 
 
     if (i>0) Permute_Matrix_Rows(Phat, ptrLU+k, a, k, m);
+    //print(LU, m, n, "LU after local permutation");
+
 
     if (i == nb-1) break;
 
@@ -170,7 +173,7 @@ void rid_gpu(const double *hA, int m, int n, double tol, int blk) {
     // randomized sketching
     thrust::counting_iterator<int> start(k*n);
     thrust::transform(start, start+G.size(), G.begin(), prg(0., 1.0/b));
-    print(G, n, blk, "G");
+    //print(G, n, blk, "G");
     
     double *ptrY = ptrLU + k*m;
     CHECK_CUBLAS( cublasDgemm(blasHandle, CUBLAS_OP_N, CUBLAS_OP_N,
@@ -179,24 +182,22 @@ void rid_gpu(const double *hA, int m, int n, double tol, int blk) {
           thrust::raw_pointer_cast(G.data()), n, &zero,
           ptrY, m) );
   
-    print(LU, m, n, "LU");
+    //print(LU, m, n, "new sample");
 
     // apply global permuation
     Permute_Matrix_Rows(P, ptrY, m, b, m);
     
-    print(LU, m, n, "LU");
-    std::cout<<"After global permutation"<<std::endl;
+    //print(LU, m, n, "Permute LU");
 
     // triangular solve
     double *ptrL = ptrLU;
-    double *ptrU = ptrLU + k*m;
     CHECK_CUBLAS( cublasDtrsm(blasHandle, CUBLAS_SIDE_LEFT, CUBLAS_FILL_MODE_LOWER,
           CUBLAS_OP_N, CUBLAS_DIAG_UNIT, 
           k, b, &one,
           ptrL, m, 
-          ptrU, m));
+          ptrY, m));
 
-    std::cout<<"After triangular solve"<<std::endl;
+    //print(LU, m, n, "Triangular solve");
 
     // Schur complement
     double negone = -1.0;
@@ -204,14 +205,16 @@ void rid_gpu(const double *hA, int m, int n, double tol, int blk) {
     CHECK_CUBLAS( cublasDgemm(blasHandle, CUBLAS_OP_N, CUBLAS_OP_N,
           m-k, b, k, &negone,
           ptrL+k, m,
-          ptrU, m, &one,
+          ptrY, m, &one,
           ptrS, m) );
+
+    //print(LU, m, n, "Schur complement");
 
 
     // compute Frobenius norm
     auto zero = thrust::make_counting_iterator<int>(0);
     auto S_idx = thrust::make_transform_iterator(zero, SchurIndex(m-k, m));
-    auto S_elm = thrust::make_permutation_iterator(ptrS, S_idx);
+    auto S_elm = thrust::make_permutation_iterator(dptr(ptrS), S_idx);
     auto S_sqr = thrust::make_transform_iterator(S_elm, thrust::square<double>());
     double eSchur = thrust::reduce(S_sqr, S_sqr+(m-k)*b);
 

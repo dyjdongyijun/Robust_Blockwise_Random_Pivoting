@@ -21,12 +21,13 @@ int main(int argc, char *argv[]) {
   rid_gpu(A.data(), A.rows(), A.cols(), 1e-8, 4);
   */
 
-  int n = 6;
+  int n = 64;
   Mat A = FastDecay(n);
-  std::cout<<"A:\n"<<A<<std::endl;
+  //std::cout<<"A:\n"<<A<<std::endl;
   
   rid(A, 1e-6, 2);
   
+  std::cout<<"\nGPU:\n";
   rid_gpu(A.data(), A.rows(), A.cols(), 1e-6, 2);
 
   return 0;
