@@ -2,6 +2,7 @@
 
 #include "matrix.hpp"
 #include "rid.hpp"
+#include "rid_gpu.hpp"
 
 
 Mat FastDecay(int);
@@ -9,13 +10,24 @@ Mat Kahan(int);
 
 int main(int argc, char *argv[]) {
 
+  /*
   // problem size (assuming square matrices)
   int n = 64;
   Mat A = Kahan(n);
   //std::cout<<"A:\n"<<A<<std::endl;
 
   rid(A, 1e-8, 4);
+  
+  rid_gpu(A.data(), A.rows(), A.cols(), 1e-8, 4);
+  */
 
+  int n = 6;
+  Mat A = FastDecay(n);
+  std::cout<<"A:\n"<<A<<std::endl;
+  
+  rid(A, 1e-6, 2);
+  
+  rid_gpu(A.data(), A.rows(), A.cols(), 1e-6, 2);
 
   return 0;
 }

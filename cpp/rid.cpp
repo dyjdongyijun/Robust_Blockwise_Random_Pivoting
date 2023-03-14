@@ -11,7 +11,7 @@ void rid(const Mat &A, double tol, int blk) {
   /*
    * Compute (row) ID decomposition
    */
-
+  
   int m = A.rows();
   int n = A.cols();
 
@@ -34,9 +34,6 @@ void rid(const Mat &A, double tol, int blk) {
   for (int i=0; i<nb; i++) {
     int k = i*blk; // number of processed rows/columns
  
-
-    //std::cout<<"E:\n"<<E<<std::endl;
-
     MKL_INT b = E.cols(); // current block size
     MKL_INT ipiv[ b ]; // 1-based fortran style integers
     assert( int(b)==blk );
@@ -46,8 +43,6 @@ void rid(const Mat &A, double tol, int blk) {
     dgetrf( &a, &b, E.data(), &a, ipiv, &info );
     assert( info==0 );
     assert( E.rows() >= E.cols() );
-
-    //print(ipiv, b, "ipiv");
     
 
     // U_1^t
@@ -108,17 +103,6 @@ Mat RandColSketch(const Mat &A, int b) {
 
   // normal distribution with mean = 0, stdev = 1/b
   Mat R = Eigen::Rand::normal<Mat>(A.cols(), b, generator, 0.0, 1.0/b);
-
-  /*
-  R <<    -0.5267,   -0.3288,   -0.4314,
-    1.3402,   -0.6718,    0.5107,
-   -0.5380,   -0.0058,   -0.3425,
-    0.5696,    0.1244,    0.1438,
-    0.5636,   -0.3259,    0.5149,
-    0.2784,   -0.0679,    0.0872;
-  */
-
-  //std::cout<<"R:\n"<<R<<std::endl;
 
   return A*R;
 }
