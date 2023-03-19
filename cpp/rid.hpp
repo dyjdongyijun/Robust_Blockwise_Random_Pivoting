@@ -3,7 +3,18 @@
 
 #include "matrix.hpp"
 
-void rid(const Mat&, double tol=1e-8, int blk=16);
+#include <vector>
 
+void RandAdapLUPP(const Mat&, double tol=1e-4, int blk=16);
+
+void RandLUPP(const Mat&, int rank,
+    std::vector<int>&, std::vector<int>&, Mat&, int&);
+
+void RandCPQR(const Mat&, int rank,
+    std::vector<int>&, std::vector<int>&, Mat&, int&, double&);
+
+Mat RandColSketch(const Mat&, int);
+
+Mat RandRowSketch(const Mat&, int);
 
 #endif

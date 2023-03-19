@@ -5,9 +5,7 @@
 #include <assert.h>
 
 
-Mat RandColSketch(const Mat&, int);
-
-void rid(const Mat &A, double tol, int blk) {
+void RandAdapLUPP(const Mat &A, double tol, int blk) {
   /*
    * Compute (row) ID decomposition
    */
@@ -21,7 +19,6 @@ void rid(const Mat &A, double tol, int blk) {
   P.setIdentity();
 
   int p = std::min(m, n);
-  Mat W = Mat::Identity( m, p );
   Mat L = Mat::Zero( m, p );
   Mat U = Mat::Zero( p, n );
 
@@ -54,12 +51,6 @@ void rid(const Mat &A, double tol, int blk) {
 
     Mat L1 = E.topRows(b).triangularView<Eigen::UnitLower>();
     Mat L2 = E.bottomRows(a-b);
-
-    // interpolation matrix
-    W.block( k+b, k, a-b, b ) 
-      = L1.triangularView<Eigen::UnitLower>().solve<Eigen::OnTheRight>( L2 );
-
-    W.middleCols(k, b) = P.transpose() * W.middleCols(k, b);
 
     // L matrix
     L.block(k, k, b, b) = L1;
@@ -95,14 +86,3 @@ void rid(const Mat &A, double tol, int blk) {
 }
 
 
-#include <EigenRand/EigenRand>
-
-Eigen::Rand::Vmt19937_64 generator;
-
-Mat RandColSketch(const Mat &A, int b) {
-
-  // normal distribution with mean = 0, stdev = 1/b
-  Mat R = Eigen::Rand::normal<Mat>(A.cols(), b, generator, 0.0, 1.0/b);
-
-  return A*R;
-}
