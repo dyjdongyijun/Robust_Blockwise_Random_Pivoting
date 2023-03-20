@@ -2,7 +2,7 @@
 clear all
 close all
 
-%maxNumCompThreads(1);
+maxNumCompThreads(1);
 fprintf('Number of threads: %i\n', maxNumCompThreads)
 
 
@@ -22,9 +22,9 @@ sv = 1e-16 .^ ((0:n-1)/(n-1));
 A = U*diag(sv)*V';
 
 
-tic 
-[sk, rd, T, flops] = RandAdapLU(A, b, tol); 
-t = toc;
+t = tic; 
+[sk, rd, T, flops] = RandAdapLUPP(A, b, tol); 
+t = toc(t);
 
 
 fprintf("\nAdaptive LU\n") 
