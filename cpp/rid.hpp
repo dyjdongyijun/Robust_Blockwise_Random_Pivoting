@@ -5,13 +5,16 @@
 
 #include <vector>
 
-void RandAdapLUPP(const Mat&, double tol=1e-4, int blk=16);
+
+void RandAdapLUPP(const Mat&, 
+    std::vector<int>&, std::vector<int>&, Mat&, int&,
+    double tol=1e-4, int blk=16);
 
 void RandLUPP(const Mat&, int rank,
     std::vector<int>&, std::vector<int>&, Mat&, int&);
 
 void RandCPQR(const Mat&, int rank,
-    std::vector<int>&, std::vector<int>&, Mat&, int&, double&);
+    std::vector<int>&, std::vector<int>&, Mat&, int&);
 
 Mat RandColSketch(const Mat&, int);
 

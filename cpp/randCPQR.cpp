@@ -1,13 +1,11 @@
 #include "rid.hpp"
-#include "timer.hpp"
 
 #include <numeric> // std::iota
-#include <iostream>
 
 
 // compute column ID
 void RandCPQR_column(const Mat &A, int rank, 
-    std::vector<int>& sk, std::vector<int> &rd, Mat &T, int &flops, double &time) {
+    std::vector<int>& sk, std::vector<int> &rd, Mat &T, int &flops) {
 
   Mat Z = RandRowSketch(A, rank);
 
@@ -25,9 +23,7 @@ void RandCPQR_column(const Mat &A, int rank,
   const MKL_INT lwork = query[0];
   double work[ lwork ];
 
-  Timer t; t.start();
   dgeqp3( &b, &m, Z.data(), &b, jpvt, tau, work, &lwork, &info );
-  t.stop(); time = t.elapsed_time();
   assert( info==0 );
   //delete[] work;
 
@@ -49,14 +45,9 @@ void RandCPQR_column(const Mat &A, int rank,
 
 
 void RandCPQR(const Mat &A, int rank, 
-    std::vector<int>& sk, std::vector<int> &rd, Mat &T, int &flops, double &time) {
+    std::vector<int>& sk, std::vector<int> &rd, Mat &T, int &flops) {
 
-  time = 0.;
-
-  Timer t; t.start();
   Mat Y = RandColSketch(A, rank);
-  t.stop(); time += t.elapsed_time();
-  
   Mat Z = Y.transpose();
 
   MKL_INT b = Z.rows();
@@ -72,10 +63,7 @@ void RandCPQR(const Mat &A, int rank,
   // compute factorization
   const MKL_INT lwork = query[0];
   double work[ lwork ];
-
-  t.start();
   dgeqp3( &b, &m, Z.data(), &b, jpvt, tau, work, &lwork, &info );
-  t.stop(); time += t.elapsed_time();
   assert( info==0 );
   //delete[] work;
 
@@ -87,11 +75,8 @@ void RandCPQR(const Mat &A, int rank,
   std::copy_n(jpvt, b, sk.begin());
   std::copy_n(jpvt+b, m-b, rd.begin());
 
-  t.start();
   Mat W = Z.leftCols(b).triangularView<Eigen::Upper>().
     solve( Z.rightCols(m-b) );
-  t.stop(); time += t.elapsed_time();
-  
   T = W.transpose();
 
   int n = A.cols();

@@ -5,7 +5,9 @@
 #include <assert.h>
 
 
-void RandAdapLUPP(const Mat &A, double tol, int blk) {
+void RandAdapLUPP(const Mat &A, 
+    std::vector<int> &sk, std::vector<int> &rd, Mat &T, int &flops,
+    double tol, int blk) {
   /*
    * Compute (row) ID decomposition
    */
@@ -24,12 +26,14 @@ void RandAdapLUPP(const Mat &A, double tol, int blk) {
 
   Mat Y = RandColSketch(A, blk);
   Mat E = Y;
+  flops = 2*m*n*blk;
 
   int nb = std::ceil( p/blk );
   assert( p%blk == 0 ); // for current implementation; will be removed
   
+  int k = 0; 
   for (int i=0; i<nb; i++) {
-    int k = i*blk; // number of processed rows/columns
+    k = i*blk; // number of processed rows/columns
  
     MKL_INT b = E.cols(); // current block size
     MKL_INT ipiv[ b ]; // 1-based fortran style integers
@@ -40,14 +44,23 @@ void RandAdapLUPP(const Mat &A, double tol, int blk) {
     dgetrf( &a, &b, E.data(), &a, ipiv, &info );
     assert( info==0 );
     assert( E.rows() >= E.cols() );
-    
+    flops = flops + 2*a*b*b/3.;
 
     // U_1^t
     U.block(k, k, b, b) = E.topRows(b).triangularView<Eigen::Upper>();
-    
+
     // global permutation (accumulation of local results)
     for (int j=0; j<b; j++)
       P.applyTranspositionOnTheLeft( k+j, k+ipiv[j]-1 );
+    
+    /*
+    auto ptr = P.indices().data();
+    for (int j=0; j<b; j++) {
+      auto tmp = ptr[ k+j ];
+      ptr[ k+j ] = ptr[ k+ipiv[j]-1 ];
+      ptr[ k+ipiv[j]-1 ] = tmp;
+    }
+    */
 
     Mat L1 = E.topRows(b).triangularView<Eigen::UnitLower>();
     Mat L2 = E.bottomRows(a-b);
@@ -61,6 +74,20 @@ void RandAdapLUPP(const Mat &A, double tol, int blk) {
     Phat.setIdentity();
     for (int j=0; j<b; j++)
       Phat.applyTranspositionOnTheLeft( j, ipiv[j]-1 );
+    
+    /*
+    ptr = Phat.indices().data();
+    for (int j=0; j<b; j++) {
+      auto tmp = ptr[ j ];
+      ptr[ j ] = ptr[ ipiv[j]-1 ];
+      ptr[ ipiv[j]-1 ] = tmp;
+    }
+    */
+
+    print(ipiv, b, "ipiv");
+    print(Phat.indices().data(), a, "Phat");
+    print(P.indices().data(), m, "P");
+    
 
     if (i>0) L.bottomLeftCorner( a, k ) = Phat * L.bottomLeftCorner( a, k );
 
@@ -70,6 +97,7 @@ void RandAdapLUPP(const Mat &A, double tol, int blk) {
       
     b = std::min(blk, p-(nb-1)*blk); // handle last panel
     Y = P * RandColSketch(A, b);
+    flops = flops + 2*m*n*b;
 
     k += blk; // number of processed rows/columns
     U.block(0, k, k, b ) = 
@@ -79,10 +107,25 @@ void RandAdapLUPP(const Mat &A, double tol, int blk) {
     E = Y.bottomRows( m-k ) - 
       L.bottomLeftCorner( m-k, k ) * U.block( 0, k, k, b );
 
+    flops = flops + k*k*b + 2*(m-k)*k*b;
+
     double eSchur = E.norm();
     std::cout<<"Norm of Schur complement: "<<eSchur<<std::endl;
     if ( eSchur < tol ) break;
   }
+
+  int r = k;
+  sk.resize(r);
+  rd.resize(m-r);
+
+  P = P.transpose();
+  auto *idx = P.indices().data();
+  std::copy_n(idx, r, sk.begin());
+  std::copy_n(idx+r, m-r, rd.begin());
+ 
+  T = L.topLeftCorner(r, r).triangularView<Eigen::UnitLower>().
+    solve<Eigen::OnTheRight>( L.bottomLeftCorner(m-r, r) );
+  flops = flops + r*r*(m-r);
 }
 
 
