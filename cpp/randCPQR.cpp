@@ -5,7 +5,7 @@
 
 // compute column ID
 void RandCPQR_column(const Mat &A, int rank, 
-    std::vector<int>& sk, std::vector<int> &rd, Mat &T, int &flops) {
+    std::vector<int>& sk, std::vector<int> &rd, Mat &T, double &flops) {
 
   Mat Z = RandRowSketch(A, rank);
 
@@ -45,7 +45,7 @@ void RandCPQR_column(const Mat &A, int rank,
 
 
 void RandCPQR(const Mat &A, int rank, 
-    std::vector<int>& sk, std::vector<int> &rd, Mat &T, int &flops) {
+    std::vector<int>& sk, std::vector<int> &rd, Mat &T, double &flops) {
 
   Mat Y = RandColSketch(A, rank);
   Mat Z = Y.transpose();

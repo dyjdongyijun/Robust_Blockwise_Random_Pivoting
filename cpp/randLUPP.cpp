@@ -4,7 +4,7 @@
                    //
 
 void RandLUPP(const Mat &A, int rank, 
-    std::vector<int>& sk, std::vector<int> &rd, Mat &T, int &flops) {
+    std::vector<int>& sk, std::vector<int> &rd, Mat &T, double &flops) {
 
   Mat Y = RandColSketch(A, rank);
   

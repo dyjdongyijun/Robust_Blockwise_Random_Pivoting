@@ -6,7 +6,7 @@
 
 
 void RandAdapLUPP(const Mat &A, 
-    std::vector<int> &sk, std::vector<int> &rd, Mat &T, int &flops,
+    std::vector<int> &sk, std::vector<int> &rd, Mat &T, double &flops,
     double tol, int blk) {
   /*
    * Compute (row) ID decomposition
@@ -26,7 +26,7 @@ void RandAdapLUPP(const Mat &A,
 
   Mat Y = RandColSketch(A, blk);
   Mat E = Y;
-  flops = 2*m*n*blk;
+  flops = 2.*m*n*blk;
 
   int nb = std::ceil( p/blk );
   assert( p%blk == 0 ); // for current implementation; will be removed
@@ -53,15 +53,6 @@ void RandAdapLUPP(const Mat &A,
     for (int j=0; j<b; j++)
       P.applyTranspositionOnTheLeft( k+j, k+ipiv[j]-1 );
     
-    /*
-    auto ptr = P.indices().data();
-    for (int j=0; j<b; j++) {
-      auto tmp = ptr[ k+j ];
-      ptr[ k+j ] = ptr[ k+ipiv[j]-1 ];
-      ptr[ k+ipiv[j]-1 ] = tmp;
-    }
-    */
-
     Mat L1 = E.topRows(b).triangularView<Eigen::UnitLower>();
     Mat L2 = E.bottomRows(a-b);
 
@@ -75,19 +66,6 @@ void RandAdapLUPP(const Mat &A,
     for (int j=0; j<b; j++)
       Phat.applyTranspositionOnTheLeft( j, ipiv[j]-1 );
     
-    /*
-    ptr = Phat.indices().data();
-    for (int j=0; j<b; j++) {
-      auto tmp = ptr[ j ];
-      ptr[ j ] = ptr[ ipiv[j]-1 ];
-      ptr[ ipiv[j]-1 ] = tmp;
-    }
-    */
-
-    print(ipiv, b, "ipiv");
-    print(Phat.indices().data(), a, "Phat");
-    print(P.indices().data(), m, "P");
-    
 
     if (i>0) L.bottomLeftCorner( a, k ) = Phat * L.bottomLeftCorner( a, k );
 
@@ -97,7 +75,7 @@ void RandAdapLUPP(const Mat &A,
       
     b = std::min(blk, p-(nb-1)*blk); // handle last panel
     Y = P * RandColSketch(A, b);
-    flops = flops + 2*m*n*b;
+    flops = flops + 2.*m*n*b;
 
     k += blk; // number of processed rows/columns
     U.block(0, k, k, b ) = 
@@ -107,10 +85,10 @@ void RandAdapLUPP(const Mat &A,
     E = Y.bottomRows( m-k ) - 
       L.bottomLeftCorner( m-k, k ) * U.block( 0, k, k, b );
 
-    flops = flops + k*k*b + 2*(m-k)*k*b;
+    flops = flops + k*k*b + 2.*(m-k)*k*b;
 
     double eSchur = E.norm();
-    std::cout<<"Norm of Schur complement: "<<eSchur<<std::endl;
+    //std::cout<<"Norm of Schur complement: "<<eSchur<<std::endl;
     if ( eSchur < tol ) break;
   }
 

@@ -1,4 +1,5 @@
 #include <iostream>
+#include <iomanip>      // std::setprecision
 
 #include "matrix.hpp"
 #include "rid.hpp"
@@ -11,15 +12,16 @@ Mat Kahan(int);
 
 int main(int argc, char *argv[]) {
 
+#if 0
   int n = 1<<4;
   double tol = 1.e-6;
   int block = 2;
   
-  /*
+#else
   int n = 1<<10;
   double tol = 1.e-8;
   int block = 128;
-  */
+#endif
   
  
   for (int i=1; i<argc; i++) {
@@ -31,10 +33,11 @@ int main(int argc, char *argv[]) {
       tol = atof(argv[++i]);
   }
   std::cout
+    <<"\nInputs:"
     <<"\n---------------------"
-    <<"\nMatrix size: "<<n<<std::endl
-    <<"block size: "<<block<<std::endl
-    <<"tolerance: "<<tol<<std::endl
+    <<"\nMatrix size:\t"<<n<<std::endl
+    <<"block size:\t"<<block<<std::endl
+    <<"tolerance:\t"<<tol<<std::endl
     <<"---------------------\n"<<std::endl;
 
 
@@ -55,7 +58,7 @@ int main(int argc, char *argv[]) {
   // new method
   std::vector<int> sk(n), rd(n);
   Mat T;
-  int flops;
+  double flops;
   double err;
 
   Timer t; t.start();
@@ -63,13 +66,16 @@ int main(int argc, char *argv[]) {
   t.stop();
 
   err = (A(rd,Eigen::all) - T*A(sk,Eigen::all)).norm();
+
+  std::cout.precision(3);
   std::cout
-    <<"\n\n----------------------------------------------------------------------\n"
-    <<"\t\ttime (s)\t flop/s\t\t rank\t\t error\n"
+    <<"\nResults:"
+    <<"\n----------------------------------------------------------------------\n"
+    <<"\t\ttime (s)\tflop/s\t\trank\t\terror\n"
     <<"----------------------------------------------------------------------\n"
     <<"RandAdapLUPP\t"<<t.elapsed_time()
-    <<"\t"<<flops/t.elapsed_time()/1.e9
-    <<"\t"<<sk.size()
+    <<"\t\t"<<flops/t.elapsed_time()/1.e9
+    <<"\t\t"<<sk.size()
     <<"\t\t"<<err
     <<std::endl;
 
@@ -89,8 +95,8 @@ int main(int argc, char *argv[]) {
 
   err = (A(rd,Eigen::all) - T*A(sk,Eigen::all)).norm();
   std::cout<<"RandLUPP\t"<<t.elapsed_time()
-    <<"\t"<<flops/t.elapsed_time()/1.e9
-    <<"\t"<<sk.size()
+    <<"\t\t"<<flops/t.elapsed_time()/1.e9
+    <<"\t\t"<<sk.size()
     <<"\t\t"<<err
     <<std::endl;
 
@@ -107,8 +113,8 @@ int main(int argc, char *argv[]) {
 
   err = (A(rd,Eigen::all) - T*A(sk,Eigen::all)).norm();
   std::cout<<"RandCPQR\t"<<t.elapsed_time()
-    <<"\t"<<flops/t.elapsed_time()/1.e9
-    <<"\t"<<sk.size()
+    <<"\t\t"<<flops/t.elapsed_time()/1.e9
+    <<"\t\t"<<sk.size()
     <<"\t\t"<<err
     <<std::endl;
 
