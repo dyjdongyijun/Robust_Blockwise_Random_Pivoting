@@ -6,6 +6,10 @@
 #include "timer.hpp"
 
 
+// helper functions
+void CopyToGPU(double *hptr, int, double *&dptr);
+void SimpleGEMM(int, double *, double *, double *);
+void CopyToCPU(double *dptr, int, double *hptr);
 
 int main(int argc, char *argv[]) {
 
@@ -64,7 +68,7 @@ int main(int argc, char *argv[]) {
   std::cout
     <<"\nResults:"
     <<"\n----------------------------------------------------------------------\n"
-    <<"\t\ttime (s)\tflop/s\t\trank\t\terror\n"
+    <<"\t\ttime (s)\tGflop/s\t\trank\t\terror\n"
     <<"----------------------------------------------------------------------\n";
 
   /*
@@ -125,11 +129,25 @@ int main(int argc, char *argv[]) {
   Mat Y = Mat::Random(n,n);
   Mat Z = Mat::Zero(n,n);
 
+  double *dX, *dY, *dZ;
+  CopyToGPU(X.data(), n*n, dX);
+  CopyToGPU(Y.data(), n*n, dY);
+  CopyToGPU(Z.data(), n*n, dZ);
+  
+  // warm up
+  SimpleGEMM(n, dX, dY, dZ);
+
   t.start();
-  Z = X*Y;
+  SimpleGEMM(n, dX, dY, dZ);
   t.stop();
+  
+  // check accuracy
+  //CopyToCPU(dZ, n*n, Z.data());
+  //std::cout<<"Z:\n"<<Z<<std::endl;
+  //std::cout<<"error: "<<(Z-X*Y).norm()<<std::endl;
+
   std::cout<<"GEMM\t\t"<<t.elapsed_time()
-    <<"\t\t"<<2.*n*n*n/t.elapsed_time()/1.e9
+    <<"\t"<<2.*n*n*n/t.elapsed_time()/1.e9
     <<std::endl;
   std::cout<<"----------------------------------------------------------------------\n\n";
 

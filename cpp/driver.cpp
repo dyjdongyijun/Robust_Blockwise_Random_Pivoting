@@ -71,7 +71,7 @@ int main(int argc, char *argv[]) {
   std::cout
     <<"\nResults:"
     <<"\n----------------------------------------------------------------------\n"
-    <<"\t\ttime (s)\tflop/s\t\trank\t\terror\n"
+    <<"\t\ttime (s)\tGflop/s\t\trank\t\terror\n"
     <<"----------------------------------------------------------------------\n"
     <<"RandAdapLUPP\t"<<t.elapsed_time()
     <<"\t\t"<<flops/t.elapsed_time()/1.e9
