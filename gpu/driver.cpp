@@ -3,12 +3,9 @@
 
 #include "matrix.hpp"
 #include "rid.hpp"
-#include "rid_gpu.hpp"
 #include "timer.hpp"
 
 
-Mat FastDecay(int);
-Mat Kahan(int);
 
 int main(int argc, char *argv[]) {
 
@@ -61,19 +58,24 @@ int main(int argc, char *argv[]) {
   double flops;
   double err;
 
-  Timer t; t.start();
-  RandAdapLUPP(A, sk, rd, T, flops, tol, block);
-  t.stop();
-
-  err = (A(rd,Eigen::all) - T*A(sk,Eigen::all)).norm();
-
+  Timer t; 
+  
   std::cout.precision(3);
   std::cout
     <<"\nResults:"
     <<"\n----------------------------------------------------------------------\n"
     <<"\t\ttime (s)\tflop/s\t\trank\t\terror\n"
-    <<"----------------------------------------------------------------------\n"
-    <<"RandAdapLUPP\t"<<t.elapsed_time()
+    <<"----------------------------------------------------------------------\n";
+
+  /*
+  t.start();
+  RandAdapLUPP(A, sk, rd, T, flops, tol, block);
+  //rid_gpu(A.data(), A.rows(), A.cols(), 1e-6, 2);
+  t.stop();
+
+  err = (A(rd,Eigen::all) - T*A(sk,Eigen::all)).norm();
+
+  std::cout<<"RandAdapLUPP\t"<<t.elapsed_time()
     <<"\t\t"<<flops/t.elapsed_time()/1.e9
     <<"\t\t"<<sk.size()
     <<"\t\t"<<err
@@ -117,7 +119,7 @@ int main(int argc, char *argv[]) {
     <<"\t\t"<<sk.size()
     <<"\t\t"<<err
     <<std::endl;
-
+*/
 
   Mat X = Mat::Random(n,n);
   Mat Y = Mat::Random(n,n);
@@ -131,42 +133,8 @@ int main(int argc, char *argv[]) {
     <<std::endl;
   std::cout<<"----------------------------------------------------------------------\n\n";
 
-  //std::cout<<"\nGPU:\n";
-  //rid_gpu(A.data(), A.rows(), A.cols(), 1e-6, 2);
 
   return 0;
-}
-
-
-Mat FastDecay(int n) {
-
-  Eigen::HouseholderQR<Mat> qr1(Mat::Random(n,n)), qr2(Mat::Random(n,n));
-
-  Mat U = qr1.householderQ();
-  Mat V = qr2.householderQ();
-
-  // fast decaying singular values
-  Vec s(n);
-  for (int i=0; i<n ;i++)
-    s[i] = std::pow(1e-16, double(i)/(n-1));
-
-  // test matrix
-  return U*s.asDiagonal()*V.transpose();
-}
-
-Mat Kahan(int n) {
-
-  double z = 0.65;
-  double p = std::sqrt(1-z*z);
-
-  Mat U = -p * Mat::Ones(n, n);
-
-  Vec d(n);
-  for (int i=0; i<n; i++)
-    d(i) = std::pow(z, i);
-
-  Mat K = U.triangularView<Eigen::UnitUpper>();
-  return d.asDiagonal() * K;
 }
 
 
