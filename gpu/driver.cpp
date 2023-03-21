@@ -3,13 +3,14 @@
 
 #include "matrix.hpp"
 #include "rid.hpp"
+#include "gemm.hpp"
 #include "timer.hpp"
 
 
 // helper functions
-void CopyToGPU(double *hptr, int, double *&dptr);
-void SimpleGEMM(int, double *, double *, double *);
-void CopyToCPU(double *dptr, int, double *hptr);
+void Copy2Device(double *hptr, int, double *&dptr);
+void Copy2Host(double *dptr, int, double *hptr);
+void Copy2Host(int *dptr, int, int *hptr);
 
 int main(int argc, char *argv[]) {
 
@@ -60,13 +61,14 @@ int main(int argc, char *argv[]) {
   Mat A = U*s.asDiagonal()*V.transpose();
   
   double *dA;
-  CopyToGPU(A.data(), n*n, dA);
+  Copy2Device(A.data(), n*n, dA);
 
 
   // new method
   std::vector<int> sk(n), rd(n);
   Mat T;
-  double *dT = NULL;
+  double *dT=NULL;
+  int *d_sk=NULL, *d_rd=NULL;
   double flops;
   double err;
 
@@ -92,26 +94,29 @@ int main(int argc, char *argv[]) {
     <<"\t\t"<<sk.size()
     <<"\t\t"<<err
     <<std::endl;
+*/
 
   // reference method (randomized LUPP with a given rank)
   sk.resize(rank), rd.resize(n-rank);
-  T = Mat();
+  T = Mat::Zero(n-rank, rank);
   flops = 0;
   err = 0.;
 
   t.start();
-  RandLUPP(A, rank, sk, rd, T, flops);
+  RandLUPP(dA, n, n, rank, d_sk, d_rd, dT, flops);
   t.stop();
 
+  Copy2Host(d_sk, rank, sk.data());
+  Copy2Host(d_rd, n-rank, rd.data());
+  Copy2Host(dT, rank*(n-rank), T.data());
   err = (A(rd,Eigen::all) - T*A(sk,Eigen::all)).norm();
   std::cout<<"RandLUPP\t"<<t.elapsed_time()
     <<"\t\t"<<flops/t.elapsed_time()/1.e9
     <<"\t\t"<<sk.size()
     <<"\t\t"<<err
     <<std::endl;
-*/
 
-
+/*
   // reference method (randomized CPQR with a given rank)
   sk.resize(rank), rd.resize(n-rank);
   T = Mat::Zero(n-rank, rank);
@@ -129,25 +134,26 @@ int main(int argc, char *argv[]) {
     <<"\t\t"<<sk.size()
     <<"\t\t"<<err
     <<std::endl;
+  */
 
   Mat X = Mat::Random(n,n);
   Mat Y = Mat::Random(n,n);
   Mat Z = Mat::Zero(n,n);
 
   double *dX, *dY, *dZ;
-  CopyToGPU(X.data(), n*n, dX);
-  CopyToGPU(Y.data(), n*n, dY);
-  CopyToGPU(Z.data(), n*n, dZ);
+  Copy2Device(X.data(), n*n, dX);
+  Copy2Device(Y.data(), n*n, dY);
+  Copy2Device(Z.data(), n*n, dZ);
   
   // warm up
-  SimpleGEMM(n, dX, dY, dZ);
+  GEMM(n, n, n, dX, dY, dZ);
 
   t.start();
-  SimpleGEMM(n, dX, dY, dZ);
+  GEMM(n, n, n, dX, dY, dZ);
   t.stop();
   
   // check accuracy
-  //CopyToCPU(dZ, n*n, Z.data());
+  //Copy2Host(dZ, n*n, Z.data());
   //std::cout<<"Z:\n"<<Z<<std::endl;
   //std::cout<<"error: "<<(Z-X*Y).norm()<<std::endl;
 

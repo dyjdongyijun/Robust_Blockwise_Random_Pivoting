@@ -13,26 +13,6 @@
 #include <cstring>
 
 
-#include <thrust/device_vector.h>
-#include <thrust/device_ptr.h>
-//#include <thrust/reduce.h>
-//#include <thrust/functional.h>
-//#include <thrust/binary_search.h>
-
-template <typename T>
-using tvec = thrust::device_vector<T>;
-  
-typedef tvec<int> ivec;
-typedef tvec<double> dvec;
-
-
-template <typename T>
-using tptr = thrust::device_ptr<T>; 
-
-typedef tptr<int> iptr;
-typedef tptr<double> dptr;
-
-
 #define CHECK_CUDA(func)                                                       \
 {                                                                              \
     cudaError_t status = (func);                                               \
@@ -114,26 +94,6 @@ inline void cublasAssert(cublasStatus_t code, const char *file, int line, bool a
         }                                                                                          \
     } while (0)
 
-
-template <typename T>
-void print(const thrust::device_vector<T>& vec, const std::string &name) {
-  std::cout<<std::endl<<name<<":"<<std::endl;
-  for (int i=0; i<vec.size(); i++)
-    std::cout<<vec[i]<<" ";
-  std::cout<<std::endl<<std::endl;
-}
-
-
-template <typename T>
-void print(const thrust::device_vector<T>& vec, int m, int n, const std::string &name) {
-  // print matrix in column ordering
-  std::cout<<std::endl<<name<<":"<<std::endl;
-  for (int i=0; i<m; i++) {
-    for (int j=0; j<n; j++)
-      std::cout<<vec[i+j*m]<<" ";
-    std::cout<<std::endl;
-  }
-}
 
 
 #endif
