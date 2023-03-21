@@ -52,13 +52,21 @@ int main(int argc, char *argv[]) {
   for (int i=0; i<n ;i++)
     s[i] = std::pow(1e-16, double(i)/(n-1));
 
+  int rank = 0;
+  for (; rank<n; rank++)
+    if (s[rank] < tol) break;
+  
   // test matrix
   Mat A = U*s.asDiagonal()*V.transpose();
+  
+  double *dA;
+  CopyToGPU(A.data(), n*n, dA);
 
 
   // new method
   std::vector<int> sk(n), rd(n);
   Mat T;
+  double *dT = NULL;
   double flops;
   double err;
 
@@ -86,10 +94,6 @@ int main(int argc, char *argv[]) {
     <<std::endl;
 
   // reference method (randomized LUPP with a given rank)
-  int rank = 0;
-  for (; rank<n; rank++)
-    if (s[rank] < tol) break;
-  
   sk.resize(rank), rd.resize(n-rank);
   T = Mat();
   flops = 0;
@@ -105,25 +109,26 @@ int main(int argc, char *argv[]) {
     <<"\t\t"<<sk.size()
     <<"\t\t"<<err
     <<std::endl;
+*/
 
 
   // reference method (randomized CPQR with a given rank)
   sk.resize(rank), rd.resize(n-rank);
-  T = Mat();
+  T = Mat::Zero(n-rank, rank);
   flops = 0;
   err = 0.;
 
   t.start();
-  RandCPQR(A, rank, sk, rd, T, flops);
+  RandCPQR(dA, n, n, rank, sk, rd, dT, flops);
   t.stop();
 
+  CopyToCPU(dT, rank*(n-rank), T.data());
   err = (A(rd,Eigen::all) - T*A(sk,Eigen::all)).norm();
   std::cout<<"RandCPQR\t"<<t.elapsed_time()
     <<"\t\t"<<flops/t.elapsed_time()/1.e9
     <<"\t\t"<<sk.size()
     <<"\t\t"<<err
     <<std::endl;
-*/
 
   Mat X = Mat::Random(n,n);
   Mat Y = Mat::Random(n,n);
