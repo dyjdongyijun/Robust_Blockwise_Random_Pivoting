@@ -1,4 +1,5 @@
 #include "rid.hpp"
+#include "types.hpp"
 #include "util.hpp"
 
 

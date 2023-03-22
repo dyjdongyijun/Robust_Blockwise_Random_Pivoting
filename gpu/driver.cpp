@@ -5,6 +5,7 @@
 #include "rid.hpp"
 #include "gemm.hpp"
 #include "timer.hpp"
+#include "print.hpp"
 
 
 // helper functions
@@ -64,11 +65,10 @@ int main(int argc, char *argv[]) {
   Copy2Device(A.data(), n*n, dA);
 
 
-  // new method
   std::vector<int> sk(n), rd(n);
+  int *d_sk=NULL, *d_rd=NULL;
   Mat T;
   double *dT=NULL;
-  int *d_sk=NULL, *d_rd=NULL;
   double flops;
   double err;
 
@@ -81,7 +81,33 @@ int main(int argc, char *argv[]) {
     <<"\t\ttime (s)\tGflop/s\t\trank\t\terror\n"
     <<"----------------------------------------------------------------------\n";
 
+  Mat X = Mat::Random(n,n);
+  Mat Y = Mat::Random(n,n);
+  Mat Z = Mat::Zero(n,n);
+
+  double *dX, *dY, *dZ;
+  Copy2Device(X.data(), n*n, dX);
+  Copy2Device(Y.data(), n*n, dY);
+  Copy2Device(Z.data(), n*n, dZ);
+  
+  // warm up
+  GEMM(n, n, n, dX, dY, dZ);
+
+  t.start();
+  GEMM(n, n, n, dX, dY, dZ);
+  t.stop();
+  
+  // check accuracy
+  //Copy2Host(dZ, n*n, Z.data());
+  //std::cout<<"Z:\n"<<Z<<std::endl;
+  //std::cout<<"error: "<<(Z-X*Y).norm()<<std::endl;
+
+  std::cout<<"GEMM\t\t"<<t.elapsed_time()
+    <<"\t"<<2.*n*n*n/t.elapsed_time()/1.e9
+    <<std::endl;
+
   /*
+  // new method
   t.start();
   RandAdapLUPP(A, sk, rd, T, flops, tol, block);
   //rid_gpu(A.data(), A.rows(), A.cols(), 1e-6, 2);
@@ -116,7 +142,10 @@ int main(int argc, char *argv[]) {
     <<"\t\t"<<err
     <<std::endl;
 
-/*
+  //std::cout<<"T:\n"<<T<<std::endl;
+  //std::cout<<"flops: "<<flops<<std::endl;
+
+
   // reference method (randomized CPQR with a given rank)
   sk.resize(rank), rd.resize(n-rank);
   T = Mat::Zero(n-rank, rank);
@@ -124,42 +153,19 @@ int main(int argc, char *argv[]) {
   err = 0.;
 
   t.start();
-  RandCPQR(dA, n, n, rank, sk, rd, dT, flops);
+  RandCPQR(dA, n, n, rank, d_sk, d_rd, dT, flops);
   t.stop();
 
-  CopyToCPU(dT, rank*(n-rank), T.data());
+  Copy2Host(d_sk, rank, sk.data());
+  Copy2Host(d_rd, n-rank, rd.data());
+  Copy2Host(dT, rank*(n-rank), T.data());
   err = (A(rd,Eigen::all) - T*A(sk,Eigen::all)).norm();
   std::cout<<"RandCPQR\t"<<t.elapsed_time()
     <<"\t\t"<<flops/t.elapsed_time()/1.e9
     <<"\t\t"<<sk.size()
     <<"\t\t"<<err
     <<std::endl;
-  */
 
-  Mat X = Mat::Random(n,n);
-  Mat Y = Mat::Random(n,n);
-  Mat Z = Mat::Zero(n,n);
-
-  double *dX, *dY, *dZ;
-  Copy2Device(X.data(), n*n, dX);
-  Copy2Device(Y.data(), n*n, dY);
-  Copy2Device(Z.data(), n*n, dZ);
-  
-  // warm up
-  GEMM(n, n, n, dX, dY, dZ);
-
-  t.start();
-  GEMM(n, n, n, dX, dY, dZ);
-  t.stop();
-  
-  // check accuracy
-  //Copy2Host(dZ, n*n, Z.data());
-  //std::cout<<"Z:\n"<<Z<<std::endl;
-  //std::cout<<"error: "<<(Z-X*Y).norm()<<std::endl;
-
-  std::cout<<"GEMM\t\t"<<t.elapsed_time()
-    <<"\t"<<2.*n*n*n/t.elapsed_time()/1.e9
-    <<std::endl;
   std::cout<<"----------------------------------------------------------------------\n\n";
 
 

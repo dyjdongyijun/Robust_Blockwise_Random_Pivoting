@@ -5,6 +5,8 @@
 #include "util.hpp"
 
 #include <memory>
+#include <stdexcept>
+
 
 template<typename T>
 class Singleton {
@@ -27,7 +29,7 @@ class Handle_t final: public Singleton<Handle_t>{
   friend class Singleton<Handle_t>; // access private constructor/destructor
 private:
   Handle_t() {
-    std::cout<<"Create Handle_t instance"<<std::endl;
+    //std::cout<<"Create Handle_t instance"<<std::endl;
     // sparse info
     //CHECK_CUSPARSE( cusparseCreateCsrgemm2Info(&info) )
     // sparse handle
@@ -42,7 +44,7 @@ private:
   }
 public:
   ~Handle_t() {
-    std::cout<<"Destroy Handle_t instance"<<std::endl;
+    //std::cout<<"Destroy Handle_t instance"<<std::endl;
     //CHECK_CUSPARSE( cusparseDestroyCsrgemm2Info(info) )
     //CHECK_CUSPARSE( cusparseDestroy(sparse) )
     //CHECK_CUSPARSE( cusparseDestroyMatDescr(mat) )
