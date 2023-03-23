@@ -16,7 +16,7 @@ void Copy2Host(int *dptr, int, int *hptr);
 
 int main(int argc, char *argv[]) {
 
-#if 0
+#if 1
   int n = 1<<4;
   double tol = 1.e-6;
   int block = 2;
@@ -152,27 +152,26 @@ int main(int argc, char *argv[]) {
   //std::cout<<"T:\n"<<T<<std::endl;
   //std::cout<<"flops: "<<flops<<std::endl;
 
-  /*
   // reference method (randomized CPQR with a given rank)
+  // Note the interface is different from randLUPP
+  Mat At = A.transpose();
+  Copy2Device(At.data(), n*n, dA);
   sk.resize(rank), rd.resize(n-rank);
   T = Mat::Zero(n-rank, rank);
   flops = 0;
   err = 0.;
 
   t.start();
-  RandCPQR(dA, n, n, rank, d_sk, d_rd, dT, flops);
+  RandCPQR_column(dA, n, n, rank, sk, rd, dT, flops);
   t.stop();
 
-  Copy2Host(d_sk, rank, sk.data());
-  Copy2Host(d_rd, n-rank, rd.data());
   Copy2Host(dT, rank*(n-rank), T.data());
-  err = (A(rd,Eigen::all) - T*A(sk,Eigen::all)).norm();
+  err = (At(Eigen::all, rd) - A(Eigen::all, sk) * T).norm();
   std::cout<<"RandCPQR\t"<<t.elapsed_time()
     <<"\t\t"<<flops/t.elapsed_time()/1.e9
     <<"\t\t"<<sk.size()
     <<"\t\t"<<err
     <<std::endl;
-  */
 
   std::cout<<"----------------------------------------------------------------------\n\n";
 

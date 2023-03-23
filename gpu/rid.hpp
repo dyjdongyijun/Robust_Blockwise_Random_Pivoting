@@ -9,9 +9,11 @@ void RandAdapLUPP(const double *A, int m, int n,
 void RandLUPP(const double *A, int m, int n, int rank,
     int *&, int *&, double *&, double&);
 
-void RandCPQR(const double *A, int m, int n, int rank,
-    int *&, int *&, double *&, double&);
 
-void RandMat(int, int, double *&);
+#include <vector>
+
+void RandCPQR_column(const double *A, int m, int n, int rank,
+    std::vector<int> &, std::vector<int> &, double *&, double&);
+
 
 #endif

@@ -9,6 +9,14 @@ void print(const T& vec, const std::string &name) {
   std::cout<<std::endl<<std::endl;
 }
 
+template <typename T>
+void print(const T *vec, int n, const std::string &name) {
+  std::cout<<std::endl<<name<<":"<<std::endl;
+  for (unsigned i=0; i<n; i++)
+    std::cout<<vec[i]<<" ";
+  std::cout<<std::endl<<std::endl;
+}
+
 
 template <typename T>
 void print(const T& vec, int m, int n, const std::string &name) {

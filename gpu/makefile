@@ -29,11 +29,14 @@ all: $(EXE)
 %.o: %.cu
 	nvcc -c $< -o $@ $(VFLAGS)
 
+randCPQR.o: randCPQR.cu rid.hpp
+	nvcc -c $< -o $@ $(VFLAGS) -I$(MAGMADIR)/include -DADD_ -DMAGMA_WITH_MKL -DHAVE_CUBLAS
+
 $(LIB): $(OBJS)
 	g++ -shared $^ -o $@
 
 driver: driver.o $(LIB)
-	g++ $^ -o $@ $(LFLAGS) 
+	g++ $^ -o $@ $(LFLAGS) -L$(MAGMADIR)/lib -lmagma
 
 clean:
 	rm -f $(EXE) *.o $(LIB)
