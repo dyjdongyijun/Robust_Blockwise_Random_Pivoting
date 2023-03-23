@@ -1,4 +1,5 @@
 #include <iostream>
+#include <vector>
 #include <iomanip>      // std::setprecision
 
 #include "matrix.hpp"
@@ -106,21 +107,27 @@ int main(int argc, char *argv[]) {
     <<"\t"<<2.*n*n*n/t.elapsed_time()/1.e9
     <<std::endl;
 
-  /*
   // new method
   t.start();
-  RandAdapLUPP(A, sk, rd, T, flops, tol, block);
-  //rid_gpu(A.data(), A.rows(), A.cols(), 1e-6, 2);
+  int r = 0; // computed rank
+  RandAdapLUPP(dA, n, n, d_sk, d_rd, dT, r, flops, tol, block);
   t.stop();
+ 
 
+  sk.resize(r);
+  rd.resize(n-r);
+  T = Mat::Zero(n-r, r);
+
+  Copy2Host(d_sk, r, sk.data());
+  Copy2Host(d_rd, n-r, rd.data());
+  Copy2Host(dT, r*(n-r), T.data());
   err = (A(rd,Eigen::all) - T*A(sk,Eigen::all)).norm();
-
   std::cout<<"RandAdapLUPP\t"<<t.elapsed_time()
     <<"\t\t"<<flops/t.elapsed_time()/1.e9
     <<"\t\t"<<sk.size()
     <<"\t\t"<<err
     <<std::endl;
-*/
+
 
   // reference method (randomized LUPP with a given rank)
   sk.resize(rank), rd.resize(n-rank);
@@ -145,7 +152,7 @@ int main(int argc, char *argv[]) {
   //std::cout<<"T:\n"<<T<<std::endl;
   //std::cout<<"flops: "<<flops<<std::endl;
 
-
+  /*
   // reference method (randomized CPQR with a given rank)
   sk.resize(rank), rd.resize(n-rank);
   T = Mat::Zero(n-rank, rank);
@@ -165,6 +172,7 @@ int main(int argc, char *argv[]) {
     <<"\t\t"<<sk.size()
     <<"\t\t"<<err
     <<std::endl;
+  */
 
   std::cout<<"----------------------------------------------------------------------\n\n";
 

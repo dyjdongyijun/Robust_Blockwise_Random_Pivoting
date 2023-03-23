@@ -1,11 +1,9 @@
 #ifndef _rid_gpu_hpp_
 #define _rid_gpu_hpp_
 
-#include <vector>
 
-
-void rid_gpu(const double *A, int m, int n,
-    int *&sk, int *&rd, double *&T, double &flops,
+void RandAdapLUPP(const double *A, int m, int n,
+    int *&sk, int *&rd, double *&T, int &, double &flops,
     double tol=1e-8, int blk=16);
 
 void RandLUPP(const double *A, int m, int n, int rank,

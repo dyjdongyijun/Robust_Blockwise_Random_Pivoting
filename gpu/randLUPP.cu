@@ -1,14 +1,13 @@
 #include "rid.hpp"
 #include "types.hpp"
 #include "gemm.hpp"
-#include "gaussian.hpp"
+#include "random.hpp"
 #include "util.hpp"
 #include "handle.hpp"
 #include "print.hpp"
 #include "timer.hpp"
 #include "submatrix.hpp"
-
-#include <numeric>      // std::iota
+#include "permute.hpp"
 
 
 void RandLUPP(const double *A, int m, int n, int k,
@@ -19,6 +18,9 @@ void RandLUPP(const double *A, int m, int n, int k,
   t.start();
   dvec Gmat(n*k);
   dvec Ymat(m*k);
+  if (!sk) CHECK_CUDA( cudaFree(sk) );
+  if (!rd) CHECK_CUDA( cudaFree(rd) );
+  if (!T)  CHECK_CUDA( cudaFree(T)  );
   CHECK_CUDA( cudaMalloc((void **) &sk, sizeof(int)*k) );
   CHECK_CUDA( cudaMalloc((void **) &rd, sizeof(int)*(m-k) ));
   CHECK_CUDA( cudaMalloc((void **) &T,  sizeof(double)*k*(m-k) ));
@@ -26,7 +28,8 @@ void RandLUPP(const double *A, int m, int n, int k,
   
 
   t.start();
-  Gaussian(Gmat, 0., 1./std::sqrt(k));
+  //Gaussian(Gmat, 0., 1./std::sqrt(k));
+  Random::Gaussian(Gmat, 0., 1.);
   t.stop(); double t0 = t.elapsed_time();
   
   
@@ -58,29 +61,9 @@ void RandLUPP(const double *A, int m, int n, int k,
 
   // permutation indices
   t.start();
-#if 0
-  ivec P(m), tmp(1);
-  thrust::sequence(P.begin(), P.end(), 0);
-  for (int j=0; j<k; j++) {
-    tmp[0] = P[j];
-    P[j] = P[ ipiv[j]-1 ];
-    P[ ipiv[j]-1 ] = tmp[0];
-  }
-#else
-  std::vector<int> Hpiv(k);
-  thrust::copy_n( ipiv.begin(), k, Hpiv.begin() );
-  
-  std::vector<int> HP(m);
-  std::iota(HP.begin(), HP.end(), 0);
-  for (int j=0; j<k; j++) {
-    int tmp = HP[j];
-    HP[j] = HP[ Hpiv[j]-1 ];
-    HP[ Hpiv[j]-1 ] = tmp;
-  }
-
   ivec P(m);
-  thrust::copy_n( HP.begin(), m, P.begin() );
-#endif
+  thrust::sequence(P.begin(), P.end(), 0);
+  pivots_to_permutation(ipiv, P);
   t.stop(); double t6 = t.elapsed_time();
 
   

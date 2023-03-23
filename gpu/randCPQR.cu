@@ -1,7 +1,7 @@
 #include "rid.hpp"
 #include "types.hpp"
 #include "gemm.hpp"
-#include "gaussian.hpp"
+#include "random.hpp"
 #include "util.hpp"
 #include "handle.hpp"
 #include "print.hpp"
@@ -26,7 +26,7 @@ void RandCPQR(const double *A, int m, int n, int k,
   
 
   t.start();
-  Gaussian(Gmat, 0., 1./std::sqrt(k));
+  Random::Gaussian(Gmat, 0., 1./std::sqrt(k));
   t.stop(); double t0 = t.elapsed_time();
   
   
