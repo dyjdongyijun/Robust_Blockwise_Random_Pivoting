@@ -14,40 +14,13 @@ static double timer() {
   return time;
 }
 
-void TimerGPU::start() {
-  cudaDeviceSynchronize();
-  tStart = timer();
-}
-
-void TimerGPU::stop() {
-  cudaDeviceSynchronize();
-  tStop = timer();
-}
-
-double TimerGPU::elapsed_time() {
-  return tStop-tStart;
-}
-
-void TimerGPU::show_elapsed_time() {
-  std::cout << "Elapsed time : " << tStop-tStart << ".\n";
-}
-
-void TimerGPU::show_elapsed_time(const char* msg) {
-  std::cout << msg << " : "
-	    << tStop-tStart << " seconds." << std::endl;
-}
-
-std::string TimerGPU::get_elapsed_time(const char* msg) {
-  std::stringstream ss;
-  ss << msg << " : " << tStop-tStart << " seconds." << std::endl;
-  return ss.str();
-}
-
 void Timer::start() {
+  cudaDeviceSynchronize();
   tStart = timer();
 }
 
 void Timer::stop() {
+  cudaDeviceSynchronize();
   tStop = timer();
 }
 

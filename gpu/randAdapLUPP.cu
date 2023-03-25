@@ -1,5 +1,6 @@
-#include "rid_gpu.hpp"
-#include "util_gpu.hpp"
+#include "rid.hpp"
+#include "types.hpp"
+#include "util.hpp"
 
 
 #include <thrust/random.h>
@@ -69,7 +70,9 @@ void Permute_Matrix_Rows(ivec &Perm, double *rawA, int m, int n, int LD) {
 }
 
 
-void rid_gpu(const double *hA, int m, int n, double tol, int blk) {
+void rid_gpu(const double *hA, int m, int n, 
+    std::vector<int> &sk, std::vector<int> &rd, double *&T, double &flops,
+    double tol, int blk) {
 
   // copy matrix to gpu
   dvec A(m*n);
