@@ -3,7 +3,6 @@
 
 #include "matrix.hpp"
 #include "rid.hpp"
-#include "rid_gpu.hpp"
 #include "timer.hpp"
 
 

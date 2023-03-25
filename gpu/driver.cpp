@@ -16,7 +16,7 @@ void Copy2Host(int *dptr, int, int *hptr);
 
 int main(int argc, char *argv[]) {
 
-#if 1
+#if 0
   int n = 1<<4;
   double tol = 1.e-6;
   int block = 2;
@@ -152,6 +152,8 @@ int main(int argc, char *argv[]) {
   //std::cout<<"T:\n"<<T<<std::endl;
   //std::cout<<"flops: "<<flops<<std::endl;
 
+
+  /*
   // reference method (randomized CPQR with a given rank)
   // Note the interface is different from randLUPP
   Mat At = A.transpose();
@@ -172,6 +174,7 @@ int main(int argc, char *argv[]) {
     <<"\t\t"<<sk.size()
     <<"\t\t"<<err
     <<std::endl;
+  */
 
   std::cout<<"----------------------------------------------------------------------\n\n";
 
