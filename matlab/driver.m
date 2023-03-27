@@ -2,6 +2,7 @@
 clear all
 close all
 
+%maxNumCompThreads('automatic');
 maxNumCompThreads(1);
 fprintf('Number of threads: %i\n', maxNumCompThreads)
 
@@ -14,8 +15,9 @@ tol = 1e-8;
 % b = 4;
 % tol = 1e-4;
 
-% singular values decay fast
+%singular values decay fast
 sv = 1e-16 .^ ((0:n-1)/(n-1));
+
 
 [U,~] = qr(randn(n));
 [V,~] = qr(randn(n));
@@ -38,8 +40,9 @@ fprintf("F error: %.2d\n", e)
 
 %% Reference LUPP (known rank)
 
+r = length(sk);
+
 t = tic;
-r = sum(sv>tol);
 [sk, rd, T, flops] = randLUPP(A, r);
 t = toc(t);
 
@@ -56,7 +59,6 @@ fprintf("F error: %.2d\n", e)
 %% Reference CPQR (known rank)
 
 t = tic;
-r = sum(sv>tol);
 [sk, rd, T, flops] = randCPQR(A, r);
 t = toc(t);
 
