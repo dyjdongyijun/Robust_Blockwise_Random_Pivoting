@@ -25,7 +25,7 @@ function [sk, rd, T, flops] = randCPQR(A, r)
     T = Tt';
     flops = 2*m*n*r + 4*m*r*r/3 + r*r*(m-r);
 
-    if 0    
+    if 1
         fprintf("\n------------------\n")
         fprintf("Profile of randCPQR")
         fprintf("\n------------------\n")

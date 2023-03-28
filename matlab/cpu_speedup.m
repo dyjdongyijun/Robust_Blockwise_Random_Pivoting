@@ -28,15 +28,15 @@ maxNumCompThreads('automatic');
 [T1, T2, T3, T4, F1, F2, F3, F4] = benchmark_methods(A, b, tol);
 
 fprintf("\n")
-fprintf("------------------------------------------\n")
+fprintf("----------------------------------------------------\n")
 fprintf('# of threads: %i\n', maxNumCompThreads)
-fprintf("------------------------------------------\n")
+fprintf("----------------------------------------------------\n")
 fprintf("\t\ttime(s)\t\tGflop/s\t\tSpeedup\n")
-fprintf("------------------------------------------\n")
+fprintf("----------------------------------------------------\n")
 fprintf("RandAdap\t%.2d\t%.2d\t%.2d\n", T1, F1/T1/1e9, t1/T1)
 fprintf("RandLUPP\t%.2d\t%.2d\t%.2d\n", T2, F2/T2/1e9, t2/T2)
 fprintf("RandCPQR\t%.2d\t%.2d\t%.2d\n", T3, F3/T3/1e9, t3/T3)
 fprintf("GEMM\t\t%.2d\t%.2d\t%.2d\n", T4, F4/T4/1e9, t4/T4)
-fprintf("------------------------------------------\n")
+fprintf("----------------------------------------------------\n")
 
 

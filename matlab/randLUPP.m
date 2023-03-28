@@ -22,7 +22,7 @@ function [sk, rd, T, flops] = randLUPP(A, r)
     
     flops = 2*m*n*r + 2*m*r*r/3 + r*r*(m-r);
     
-    if 0    
+    if 1
         fprintf("\n------------------\n")
         fprintf("Profile of randLUPP")
         fprintf("\n------------------\n")

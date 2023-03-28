@@ -9,6 +9,7 @@
 #include "submatrix.hpp"
 
 #include "magma.h"
+#include "flops.hpp"
 
 #include <numeric>      // std::iota
 
@@ -35,32 +36,23 @@ void RandCPQR_column(const double *A, int m, int n, int k,
   double *Y = thrust::raw_pointer_cast( Ymat.data() );
   GEMM(k, n, m, G, A, Y);
   t.stop(); double t1 = t.elapsed_time();
-  print(Ymat, k, n, "Y");
-
-  std::cout<<"Before CPQR\n";
+  //print(Ymat, k, n, "Y");
 
   t.start();
-  int jpvt[n] = {0};
-  double tau[k];
   int info;
-  int lwork = (n+1)*128 + 2*n; // blocksize = 1024;
+  int lwork = 2*n + ( n+1 ) * magma_get_dgeqp3_nb( k, n );
+  int jpvt[n] = {0};
+
+  dvec tau(k);
   dvec work(lwork);
+  magmaDouble_ptr dtau  = thrust::raw_pointer_cast( tau.data() );
   magmaDouble_ptr dwork = thrust::raw_pointer_cast( work.data() );
-  magma_dgeqp3_gpu(k, n, Y, k, jpvt, tau, dwork, lwork, &info);
+  magma_dgeqp3_gpu(k, n, Y, k, jpvt, dtau, dwork, lwork, &info);
   assert( info==0 );
   t.stop(); double t2 = t.elapsed_time();
 
-
-  print(jpvt, n, "jpvt");
-  print(tau,  k, "tau");
-  std::cout<<"After CPQR\n";
-  std::cout<<"lwork: "<<lwork<<std::endl;
-
-  double owork[lwork];
-  thrust::copy_n( work.begin(), lwork, owork );
-  std::cout<<"optimal lwork: "<<owork[0]<<std::endl;
-  
-  print(Ymat, k, n, "Y");
+  //print(jpvt, n, "jpvt");
+  //print(tau, "tau");
 
   
   t.start();
@@ -83,18 +75,18 @@ void RandCPQR_column(const double *A, int m, int n, int k,
   t.stop(); double t5 = t.elapsed_time();
 
 
-  flops = 2.*m*n*k + 4.*n*k*k/3. + 1.0*k*k*(n-k);
+  flops = 2.*m*n*k + FLOPS_DGEQRF( k, n ) + 1.0*k*k*(n-k);
 
 
-#if 1
+#if 0
   std::cout<<std::endl
     <<"--------------------\n"
-    <<"  RandLUPP\n"
+    <<"  RandCPQR\n"
     <<"--------------------\n"
     <<"Alloc: "<<t4<<std::endl
     <<"Rand:  "<<t0<<std::endl
     <<"GEMM:  "<<t1<<std::endl
-    <<"LUPP:  "<<t2<<std::endl
+    <<"CPQR:  "<<t2<<std::endl
     <<"Solve: "<<t3<<std::endl
     <<"Copy:  "<<t5<<std::endl
     <<"--------------------\n"

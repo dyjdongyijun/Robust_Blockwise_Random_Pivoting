@@ -153,28 +153,29 @@ int main(int argc, char *argv[]) {
   //std::cout<<"flops: "<<flops<<std::endl;
 
 
-  /*
   // reference method (randomized CPQR with a given rank)
   // Note the interface is different from randLUPP
   Mat At = A.transpose();
   Copy2Device(At.data(), n*n, dA);
   sk.resize(rank), rd.resize(n-rank);
-  T = Mat::Zero(n-rank, rank);
+  T = Mat::Zero(rank, n-rank);
   flops = 0;
   err = 0.;
+
+  // warm up magma
+  RandCPQR_column(dA, n, n, rank, sk, rd, dT, flops);
 
   t.start();
   RandCPQR_column(dA, n, n, rank, sk, rd, dT, flops);
   t.stop();
 
   Copy2Host(dT, rank*(n-rank), T.data());
-  err = (At(Eigen::all, rd) - A(Eigen::all, sk) * T).norm();
+  err = (At(Eigen::all, rd) - At(Eigen::all, sk)*T).norm();
   std::cout<<"RandCPQR\t"<<t.elapsed_time()
     <<"\t\t"<<flops/t.elapsed_time()/1.e9
     <<"\t\t"<<sk.size()
     <<"\t\t"<<err
     <<std::endl;
-  */
 
   std::cout<<"----------------------------------------------------------------------\n\n";
 
