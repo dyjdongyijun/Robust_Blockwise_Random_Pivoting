@@ -53,7 +53,8 @@ int main(int argc, char *argv[]) {
   // test matrix
   Mat A = U*s.asDiagonal()*V.transpose();
 
-  init_rand();
+  // initialization for randomized methods
+  init_rand_generator();
 
   // new method
   Timer t; 

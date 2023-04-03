@@ -3,15 +3,22 @@
 
 #include <EigenRand/EigenRand>
 #include <iostream>
+#include <random>
+
+
+
+using PRNG = Eigen::Rand::Vmt19937_64;
+
 
 int NT = omp_get_max_threads();
-std::vector<Eigen::Rand::Vmt19937_64> Gen(NT);
+std::vector<PRNG> urng(NT);
 
 
-void init_rand() {
+void init_rand_generator() {
+  std::random_device r;
   for (int i=0; i<NT; i++) {
-    Eigen::Rand::Vmt19937_64 gen{i};
-    Gen[i] = gen;
+    PRNG tmp{r()};
+    urng[i] = tmp;
   }
 }
 
@@ -28,11 +35,12 @@ Mat RandMat(int m, int n, double mean, double std) {
     int s = i < n%nt ? b*i : b*i+n%nt;
     //std::cout<<"thread "<<i<<", block: "<<b<<", start: "<<s<<std::endl;
     
-    Mat B = Eigen::Rand::normal<Mat>(m, b, Gen[i], mean, std);
+    Mat B = Eigen::Rand::normal<Mat>(m, b, urng[i], mean, std);
     A.middleCols(s, b) = B;
   }
     
   return A;
 }
+
 
 

@@ -22,7 +22,7 @@ Mat RandRowSketch(const Mat&, int);
 
 Mat RandMat(int, int, double, double);
 
-void init_rand();
+void init_rand_generator();
 
 
 #endif
