@@ -170,7 +170,7 @@ void RandAdapLUPP(const double *A, int m, int n,
   auto elem = thrust::make_permutation_iterator(dptr(LU+k), indx);
   thrust::copy_n( elem, k*(m-k), dptr(T) );  
 
-  flops = flops + k*k*(m-k);
+  flops = flops + 1.*k*k*(m-k);
   
   rank = k;  // computed rank
 

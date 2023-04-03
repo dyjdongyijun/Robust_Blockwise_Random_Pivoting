@@ -55,9 +55,6 @@ int main(int argc, char *argv[]) {
   for (int i=0; i<n ;i++)
     s[i] = std::pow(1e-16, double(i)/(n-1));
 
-  int rank = 0;
-  for (; rank<n; rank++)
-    if (s[rank] < tol) break;
   
   // test matrix
   Mat A = U*s.asDiagonal()*V.transpose();
@@ -130,11 +127,17 @@ int main(int argc, char *argv[]) {
 
 
   // reference method (randomized LUPP with a given rank)
+  int rank = r;
+  //for (; rank<n; rank++)
+    //if (s[rank] < tol) break;
   sk.resize(rank), rd.resize(n-rank);
   T = Mat::Zero(n-rank, rank);
   flops = 0;
   err = 0.;
 
+  // warm-up
+  RandLUPP(dA, n, n, rank, d_sk, d_rd, dT, flops);
+  
   t.start();
   RandLUPP(dA, n, n, rank, d_sk, d_rd, dT, flops);
   t.stop();

@@ -64,13 +64,6 @@ int main(int argc, char *argv[]) {
   double err;
 
 
-#if 0
-  int nb[7] = {8,    16,    32,    64,   128,   256,   512};
-  for (int i=0; i<7; i++) {
-
-    block = nb[i];
-#endif
-
   // warm up
   RandAdapLUPP(A, sk, rd, T, flops, tol, block);
   
@@ -92,9 +85,6 @@ int main(int argc, char *argv[]) {
     <<"\t\t"<<err
     <<std::endl;
 
-#if 0
-  }
-#endif
 
   // reference method (randomized LUPP with a given rank)
   int rank = sk.size();
