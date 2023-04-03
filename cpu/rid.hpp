@@ -16,6 +16,9 @@ void RandLUPP(const Mat&, int rank,
 void RandCPQR(const Mat&, int rank,
     std::vector<int>&, std::vector<int>&, Mat&, double&);
 
+void RandCPQR_column(const Mat&, int rank,
+    std::vector<int>&, std::vector<int>&, Mat&, double&);
+
 Mat RandColSketch(const Mat&, int);
 
 Mat RandRowSketch(const Mat&, int);

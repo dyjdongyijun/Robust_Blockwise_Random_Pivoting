@@ -112,19 +112,20 @@ int main(int argc, char *argv[]) {
 
 
   // reference method (randomized CPQR with a given rank)
+  Mat At = A.transpose();
   sk.resize(rank), rd.resize(n-rank);
   T = Mat();
   flops = 0;
   err = 0.;
   
-  //warm up
-  RandCPQR(A, rank, sk, rd, T, flops);
+  // no need to warm up
+  //RandCPQR(A, rank, sk, rd, T, flops);
 
   t.start();
-  RandCPQR(A, rank, sk, rd, T, flops);
+  RandCPQR_column(At, rank, sk, rd, T, flops);
   t.stop();
 
-  err = (A(rd,Eigen::all) - T*A(sk,Eigen::all)).norm();
+  err = (A(rd,Eigen::all) - T.transpose()*A(sk,Eigen::all)).norm();
   std::cout<<"RandCPQR\t"<<t.elapsed_time()
     <<"\t\t"<<flops/t.elapsed_time()/1.e9
     <<"\t\t"<<sk.size()

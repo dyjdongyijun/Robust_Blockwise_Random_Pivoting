@@ -15,7 +15,6 @@ void RandLUPP(const Mat &A, int rank,
   //Mat R = Mat::Zero(A.cols(), rank);
   //Random::Gaussian( R.data(), A.cols()*rank, 0., 1. );
   t.stop(); double t0 = t.elapsed_time();
-  std::cout<<"Time: "<<t0<<std::endl;
 
   t.start();
   Mat Y = A*R;
@@ -53,7 +52,7 @@ void RandLUPP(const Mat &A, int rank,
   int n = A.cols();
   flops = 2.*m*n*b + 2.*m*b*b/3.0 + 1.*b*b*(m-b);
 
-#if 1
+#if 0
   std::cout<<std::endl
     <<"--------------------\n"
     <<"  RandLUPP\n"

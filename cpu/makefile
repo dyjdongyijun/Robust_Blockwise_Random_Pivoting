@@ -21,8 +21,6 @@ INCLUDES = -I$(EIGEN_ROOT) -I$(EIGEN_RAND_ROOT) -I${MKLROOT}/include
 
 all: $(EXE)
 
-randMat.o: randMat.cpp
-	g++ -c randMat.cpp -o randMat.o -O3 -fopenmp -fPIC --std=c++14 -Wall -I/oden/chao/libs/eigen -I/oden/chao/libs/EigenRand 
 
 %.o: %.cpp %.hpp
 	g++ -c $< -o $@ $(CFLAGS) $(INCLUDES)
