@@ -52,18 +52,15 @@ void RandLUPP(const Mat &A, int rank,
   int n = A.cols();
   flops = 2.*m*n*b + 2.*m*b*b/3.0 + 1.*b*b*(m-b);
 
-#if 0
+#if 1
   std::cout<<std::endl
     <<"--------------------\n"
     <<"  RandLUPP\n"
     <<"--------------------\n"
-    //<<"Alloc: "<<t4<<std::endl
     <<"Rand:  "<<t0<<std::endl
     <<"GEMM:  "<<t1<<std::endl
     <<"LUPP:  "<<t2<<std::endl
     <<"Solve: "<<t3<<std::endl
-    //<<"Copy:  "<<t5<<std::endl
-    //<<"Perm:  "<<t6<<std::endl
     <<"--------------------\n"
     <<"Total: "<<t0+t1+t2+t3<<std::endl
     <<"--------------------\n"

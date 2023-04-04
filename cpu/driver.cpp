@@ -12,7 +12,7 @@ Mat Kahan(int);
 int main(int argc, char *argv[]) {
 
 #if 0
-  int n = 1<<4;
+  int n = 1<<3;
   double tol = 1.e-6;
   int block = 2;
   
