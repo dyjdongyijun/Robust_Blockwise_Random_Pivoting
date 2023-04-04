@@ -16,11 +16,12 @@ LFLAGS ?= -Wl,-rpath,$(shell pwd)
 #LFLAGS += -L${MKLROOT}/lib/intel64 -Wl,--no-as-needed -lmkl_intel_ilp64 -lmkl_sequential -lmkl_core -lpthread -lm -ldl
 LFLAGS += -L${MKLROOT}/lib/intel64 -Wl,--no-as-needed -lmkl_intel_ilp64 -lmkl_gnu_thread -lmkl_core -lgomp -lpthread -lm -ldl
 LFLAGS += -lcublas -lcusolver -lcuda -lcudart 
+LFLAGS += -ltbbmalloc_proxy 
+
 
 INCLUDES = -I$(EIGEN_ROOT) -I$(EIGEN_RAND_ROOT) -I${MKLROOT}/include
 
 all: $(EXE)
-
 
 %.o: %.cpp %.hpp
 	g++ -c $< -o $@ $(CFLAGS) $(INCLUDES)
@@ -35,6 +36,8 @@ $(LIB): $(OBJS)
 	g++ -shared $^ -o $@
 
 driver: driver.o $(LIB)
+	# TBB scalable memory allocation
+	LD_PRELOAD=libtbbmalloc_proxy.so 
 	g++ $^ -o $@ $(LFLAGS) 
 
 clean:

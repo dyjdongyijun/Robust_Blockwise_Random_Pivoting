@@ -136,6 +136,9 @@ int main(int argc, char *argv[]) {
   Mat X = Mat::Random(n,n);
   Mat Y = Mat::Random(n,n);
   Mat Z = Mat::Zero(n,n);
+  
+  // warm up
+  Z = X*Y;
 
   t.start();
   Z = X*Y;

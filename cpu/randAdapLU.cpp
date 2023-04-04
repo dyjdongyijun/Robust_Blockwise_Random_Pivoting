@@ -6,6 +6,7 @@
 #include <assert.h>
 
 
+
 void RandAdapLUPP(const Mat &A, 
     std::vector<int> &sk, std::vector<int> &rd, Mat &T, double &flops,
     double tol, int blk) {
@@ -164,5 +165,6 @@ void RandAdapLUPP(const Mat &A,
     <<std::endl;
 #endif      
 }
+
 
 
