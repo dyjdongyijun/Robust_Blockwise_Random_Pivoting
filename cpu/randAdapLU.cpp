@@ -1,6 +1,7 @@
 #include "rid.hpp"
 #include "util.hpp"
 #include "timer.hpp"
+#include "permute.hpp"
 
 #include <iostream>
 #include <assert.h>
@@ -70,6 +71,7 @@ void RandAdapLUPP(const Mat &A,
     t.start();
     // global permutation (accumulation of local results)
     for (int j=0; j<b; j++)
+      //P.applyTranspositionOnTheRight( k+j, k+ipiv[j]-1 );
       P.applyTranspositionOnTheLeft( k+j, k+ipiv[j]-1 );
     
 
@@ -106,9 +108,15 @@ void RandAdapLUPP(const Mat &A,
     flops = flops + 2.*m*n*b;
     
 
+    //std::cout<<"L:\n"<<L<<std::endl;
 
     t.start();
+#if 0
     L.middleCols(k, b) = P * L.middleCols(k, b);    
+#else
+    double *Y = L.data() + k*m;
+    Permute_Matrix_Rows(P.indices().data(), Y, m, b, m);
+#endif
     t.stop(); t4 += t.elapsed_time();
     
 
