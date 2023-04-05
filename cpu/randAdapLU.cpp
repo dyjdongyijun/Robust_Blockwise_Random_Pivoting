@@ -1,9 +1,11 @@
 #include "rid.hpp"
 #include "util.hpp"
 #include "timer.hpp"
-#include "permute.hpp"
+#include "flops.hpp"
+#include "print.hpp"
 
 #include <iostream>
+#include <numeric>
 #include <assert.h>
 
 
@@ -17,13 +19,14 @@ void RandAdapLUPP(const Mat &A,
   
   Timer t;
 
-  int m = A.rows();
-  int n = A.cols();
+  MKL_INT m = A.rows();
+  MKL_INT n = A.cols();
 
   assert( n > blk );
 
-  Eigen::PermutationMatrix<Eigen::Dynamic, Eigen::Dynamic> P( m );
-  P.setIdentity();
+  // permutation matrix (1-based fortran style)
+  std::vector<MKL_INT> P(m);
+  std::iota( P.begin(), P.end(), 1 );
 
   t.start();
   int p = std::min(m, n);
@@ -45,9 +48,10 @@ void RandAdapLUPP(const Mat &A,
   int nb = std::ceil( p/blk );
   assert( p%blk == 0 ); // for current implementation; will be removed
   
-  double t2 = 0., t4 = 0., t5 = 0.;
+  double t2 = 0., t4 = 0.;
 
-  int k = 0; 
+  MKL_INT k = 0; 
+  const MKL_INT forwrd = 1;
   for (int i=0; i<nb; i++) {
     k = i*blk; // number of processed rows/columns
  
@@ -63,29 +67,34 @@ void RandAdapLUPP(const Mat &A,
     double *E = L.data() + k*m+k;
     dgetrf( &a, &b, E, &ld, ipiv, &info );
     assert( info==0 );
-    flops = flops + 2.*a*b*b/3.;
+    flops = flops + FLOPS_DGETRF(a,b);
     t.stop(); t2 += t.elapsed_time();
 
 
 
-    t.start();
     // global permutation (accumulation of local results)
-    for (int j=0; j<b; j++)
-      //P.applyTranspositionOnTheRight( k+j, k+ipiv[j]-1 );
-      P.applyTranspositionOnTheLeft( k+j, k+ipiv[j]-1 );
+    for (int j=0; j<b; j++) {
+      MKL_INT tmp = P[ j+k ];
+      P[ j+k ] = P[ ipiv[j]-1+k ];
+      P[ ipiv[j]-1+k ] = tmp;
+    }
+    
     
 
     // local permutation of current iteration
-    Eigen::PermutationMatrix<Eigen::Dynamic, Eigen::Dynamic> Phat( a );
-    Phat.setIdentity();
-    for (int j=0; j<b; j++)
-      Phat.applyTranspositionOnTheLeft( j, ipiv[j]-1 );
-    t.stop(); t5 += t.elapsed_time();
+    std::vector<MKL_INT> Phat(a);
+    std::iota( Phat.begin(), Phat.end(), 1 );
+    for (int j=0; j<b; j++) {
+      MKL_INT tmp = Phat[ j ];
+      Phat[ j ] = Phat[ ipiv[j]-1 ];
+      Phat[ ipiv[j]-1 ] = tmp;
+    }
     
+
 
     if (i>0) {
       t.start();
-      L.bottomLeftCorner( a, k ) = Phat * L.bottomLeftCorner( a, k );
+      dlapmr( &forwrd, &a, &k, L.data()+k, &m, Phat.data() );
       t.stop(); t4 += t.elapsed_time();
     }
     
@@ -108,17 +117,9 @@ void RandAdapLUPP(const Mat &A,
     flops = flops + 2.*m*n*b;
     
 
-    //std::cout<<"L:\n"<<L<<std::endl;
-
     t.start();
-#if 0
-    L.middleCols(k, b) = P * L.middleCols(k, b);    
-#else
-    double *Y = L.data() + k*m;
-    Permute_Matrix_Rows(P.indices().data(), Y, m, b, m);
-#endif
+    dlapmr( &forwrd, &m, &b, L.data()+k*m, &m, P.data() );
     t.stop(); t4 += t.elapsed_time();
-    
 
 
     t.start();
@@ -128,7 +129,6 @@ void RandAdapLUPP(const Mat &A,
        .solve( L.block( 0, k, k, b ) ));
     t.stop(); t2 += t.elapsed_time();
 
-    
 
     flops = flops + 1.*k*k*b + 2.*(m-k)*k*b;
     double eSchur = L.block(k,k,m-k,b).norm();
@@ -140,8 +140,10 @@ void RandAdapLUPP(const Mat &A,
   sk.resize(r);
   rd.resize(m-r);
 
-  P = P.transpose();
-  auto *idx = P.indices().data();
+
+  for (int i=0; i<m; i++)
+    P[i]--;
+  auto *idx = P.data();
   std::copy_n(idx, r, sk.begin());
   std::copy_n(idx+r, m-r, rd.begin());
  
@@ -155,7 +157,7 @@ void RandAdapLUPP(const Mat &A,
   flops = flops + 1.*r*r*(m-r);
 
 
-#if 1
+#ifdef PROF
   std::cout<<std::endl
     <<"--------------------\n"
     <<"  RandAdapLUPP\n"
@@ -165,10 +167,9 @@ void RandAdapLUPP(const Mat &A,
     <<"GEMM:  "<<t1<<std::endl
     <<"LUPP:  "<<t2<<std::endl
     <<"Solve: "<<t3<<std::endl
-    <<"Copy:  "<<t4<<std::endl
-    <<"Perm:  "<<t5<<std::endl
+    <<"Perm:  "<<t4<<std::endl
     <<"--------------------\n"
-    <<"Total: "<<t0+t1+t2+t3+t4+t5+t6<<std::endl
+    <<"Total: "<<t0+t1+t2+t3+t4+t6<<std::endl
     <<"--------------------\n"
     <<std::endl;
 #endif      

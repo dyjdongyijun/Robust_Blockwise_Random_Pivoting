@@ -39,6 +39,13 @@ int main(int argc, char *argv[]) {
     <<"tolerance:\t"<<tol<<std::endl
     <<"---------------------\n"<<std::endl;
 
+  std::cout.precision(3);
+  std::cout
+    <<"\nResults:"
+    <<"\n----------------------------------------------------------------------\n"
+    <<"\t\ttime (s)\tGflop/s\t\trank\t\terror\n"
+    <<"----------------------------------------------------------------------\n";
+   
 
   Eigen::HouseholderQR<Mat> qr1(Mat::Random(n,n)), qr2(Mat::Random(n,n));
 
@@ -66,25 +73,30 @@ int main(int argc, char *argv[]) {
 
   // warm up
   RandAdapLUPP(A, sk, rd, T, flops, tol, block);
-  
+ 
+#ifdef BLOCK
+  int nb[7] = {16, 32, 64, 128, 256, 512, 1024};
+
+  for (int i=0; i<7; i++) {
+    block = nb[i];
+    std::cout<<"block size: "<<block<<std::endl;
+#endif
+
   t.start();
   RandAdapLUPP(A, sk, rd, T, flops, tol, block);
   t.stop();
 
-  err = (A(rd,Eigen::all) - T*A(sk,Eigen::all)).norm();
 
-  std::cout.precision(3);
-  std::cout
-    <<"\nResults:"
-    <<"\n----------------------------------------------------------------------\n"
-    <<"\t\ttime (s)\tGflop/s\t\trank\t\terror\n"
-    <<"----------------------------------------------------------------------\n"
-    <<"RandAdapLUPP\t"<<t.elapsed_time()
+  err = (A(rd,Eigen::all) - T*A(sk,Eigen::all)).norm();
+  std::cout<<"RandAdapLUPP\t"<<t.elapsed_time()
     <<"\t\t"<<flops/t.elapsed_time()/1.e9
     <<"\t\t"<<sk.size()
     <<"\t\t"<<err
     <<std::endl;
 
+#ifdef BLOCK
+}
+#endif
 
   // reference method (randomized LUPP with a given rank)
   int rank = sk.size();

@@ -7,7 +7,7 @@ OBJS := $(filter-out driver.o, $(OBJS))
 OBJS += $(patsubst %.cu,%.o,$(wildcard *.cu))
 
 
-CFLAGS ?= -O3 -fopenmp -fPIC --std=c++14 -Wall -Wno-unused -DEIGEN_USE_MKL_ALL -DMKL_ILP64 -m64 
+CFLAGS ?= -DPROF -O3 -fopenmp -fPIC --std=c++14 -Wall -Wno-unused -DEIGEN_USE_MKL_ALL -DMKL_ILP64 -m64 
 #CFLAGS ?= -g -fPIC --std=c++14 -Wall -Wno-unused -DEIGEN_USE_MKL_ALL -DMKL_ILP64 -m64 
 VFLAGS ?= -O3 -arch=compute_70 -code=sm_70 -Xcompiler -fPIC -Xcompiler -fopenmp -DTHRUST_HOST_SYSTEM=THRUST_HOST_SYSTEM_TBB
 

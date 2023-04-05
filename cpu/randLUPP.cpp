@@ -1,5 +1,6 @@
 #include "rid.hpp"
 #include "timer.hpp"
+#include "flops.hpp"
 
 #include <numeric> // std::iota
 #include <iostream>                
@@ -50,9 +51,9 @@ void RandLUPP(const Mat &A, int rank,
   t.stop(); double t3 = t.elapsed_time();
 
   int n = A.cols();
-  flops = 2.*m*n*b + 2.*m*b*b/3.0 + 1.*b*b*(m-b);
+  flops = 2.*m*n*b + FLOPS_DGETRF(m,b) + 1.*b*b*(m-b);
 
-#if 1
+#ifdef PROF
   std::cout<<std::endl
     <<"--------------------\n"
     <<"  RandLUPP\n"
