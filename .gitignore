@@ -1,3 +1,6 @@
 .*
 !.gitignore
 __*
+
+*.sh
+*.txt
