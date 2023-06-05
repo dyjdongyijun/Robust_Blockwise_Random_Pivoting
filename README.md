@@ -1,1 +1,1 @@
-# Adaptive Blocked Randomized LUPP
+# Blocked Randomized LUPP
