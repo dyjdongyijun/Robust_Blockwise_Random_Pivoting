@@ -1,5 +1,4 @@
-# Robust Blockwise Random Pivoting for Fast and Accurate Adaptive ID
-
+# Robust Blockwise Random Pivoting
 Code for our paper:
 ```
 Robust Blockwise Random Pivoting: Fast and Accurate Adaptive Interpolative Decomposition
@@ -18,7 +17,7 @@ $ pip install -r pip_pkg.txt
 ..
 |-- main (this repo)
 |   |-- python 
-|   |   |-- RPID.ipynb # main Python experiment demo
+|   |   |-- RBRP.ipynb # main Python experiment demo
 |   |   |-- gmm_dpp.npy # pre-computed results of k-DPP (and other methods) on a GMM matrix
 |   |-- figs # output figures 
 |   |-- conda_env.yml # conda environment
