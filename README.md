@@ -5,7 +5,7 @@ Robust Blockwise Random Pivoting: Fast and Accurate Adaptive Interpolative Decom
 Yijun Dong, Chao Chen, Per-Gunnar Martinsson, Katherine Pearce. 
 ```
 
-## Environment setup
+## Environment setup for Python
 ```
 $ conda env create -f conda_env.yml -n rnla
 $ conda activate rnla
