@@ -34,7 +34,7 @@ function [sk, rd, T, flops] = randCPQR_OS(A, r)
     t3 = toc;
 
 
-    if 1
+    if 0
         fprintf("\n------------------\n")
         fprintf("Profile of randCPQR-OS")
         fprintf("\n------------------\n")

@@ -1,6 +1,6 @@
 function A = Matrix_GMM(n, d)
 
-k = 200;
+k = 100;
 m = n/k;
 
 A = randn(n, d);

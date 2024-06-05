@@ -2,8 +2,37 @@ clear all
 close all
 
 
-% maxNumCompThreads
+%%%%%%%%%%%%%%%%%%%%%%%%
+% small matrix sizes
+% (good for accuracy tests)
+%%%%%%%%%%%%%%%%%%%%%%%%
 
+X = Matrix_Gaussian_exp(1000);
+
+%X = Matrix_SNN(1000);
+
+%X = Matrix_GMM(2000, 500);
+
+%load mnist.mat
+%load cifar10.mat
+
+%X = A(:, randperm(60000, 1000));
+%X = X ./ vecnorm(X);
+
+%%%
+% Every column of matrix A contains an image from 
+%   mnist (length 28x28=782) or cifar10 (length 32x32x3=3072).
+% Matrix A has 60,000 columns containing all the training
+%   and testing images.
+% mnist can be obtained from, e.g., https://github.com/sunsided/mnist-matlab
+% cifar10 can be obtained from, e.g., https://www.mathworks.com/matlabcentral/fileexchange/62990-deep-learning-tutorial-series
+%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%
+% large matrix sizes
+% (good for speed tests)
+%%%%%%%%%%%%%%%%%%%%%%%%
 
 %load mnist.mat
 %load cifar10.mat
@@ -12,38 +41,21 @@ close all
 
 
 %X = Matrix_Gaussian_exp(20000);
-%X = Matrix_Gaussian_exp(1000);
 
 %X = Matrix_SNN(20000);
 
 %X = Matrix_GMM(100000, 1000);
 
-%%%%%%%%%%%%
-
-% X = Matrix_Gaussian_exp(1000);
-% X = X ./ vecnorm(X);
-
-X = Matrix_Gaussian_exp(1000);
-
-%X = Matrix_SNN(4000);
-%X = X ./ vecnorm(X);
-
-%X = Matrix_GMM(2000, 500);
-%X = X ./ vecnorm(X);
 
 
+% use a gpu if available
 if gpuDeviceCount("available")
   X = gpuArray(X);
 end
 
 
-% block size for RBRP
-blk = 64;
-
-%ranks = (1:6)*blk;
-
-
-%X = gpuarray(X);
+[m,n] = size(X);
+fprintf('Matrix size: %d x %d\n', m, n);
 
 
 
@@ -52,19 +64,18 @@ blk = 64;
 
 maxNumCompThreads(1);
 
-% tic
-% [~, ~, ~, res_srp, time_srp, rank_srp] = RBRP_left(X, 1, 'random');
-% t_rbrp = toc;
+% block size for RBRP
+blk = 64;
 
 
 tic
-[Q2, R2, p2, res_rbrp, time_rbrp, rank_rbrp] = RBRP_left(X, blk, 'random');
+[Q2, R2, p2, res_rbrp, time_rbrp, rank_rbrp] = RBRP(X, blk, 'random');
 t_rbrp = toc;
 
 
-
-m = 10; 
-ranks = rank_rbrp(1:10);
+% pick the first few ranks for comparison with other methods
+m = 7; 
+ranks = rank_rbrp(1:m);
 
 
 err_rbrp = zeros(1,m);
@@ -116,6 +127,7 @@ err_svd = err_svd.^2; % squared
 %% CPQR
 
 maxNumCompThreads(1);
+
 if isgpuarray(X)
   display('CPQR on GPU')
 else
@@ -246,7 +258,6 @@ ax = gca;
 set(ax,'fontsize',22);
 xlabel('rank');
 ylabel('squared error');
-%legend('SVD', 'CPQR', 'randCPQR', 'randCPQR-OS', 'SqNorm', 'New','Location', 'best')
 legend('SVD', 'CPQR', 'randCPQR-OS', 'randLUPP-OS', 'SqNorm', 'New','Location', 'best')
 saveas(gcf,'fig_error','epsc')
 
@@ -272,39 +283,53 @@ saveas(gcf,'fig_speed','epsc')
 %%
 
 fid = fopen('results.m','w');
-%fprintf(fid, 'ranks\t');
-fprintf(fid, '%5d\t', ranks);
-fprintf(fid, '\n');
+fprintf(fid, 'SVD\n');
 fprintf(fid, '%1.3e\t', err_svd);
 fprintf(fid, '\n');
+
+fprintf(fid, 'ranks\n');
+fprintf(fid, '%5d\t', ranks);
+fprintf(fid, '\n');
+
+fprintf(fid, 'RBRP\n');
+fprintf(fid, '%1.3e\t', res_rbrp);
+fprintf(fid, '\n');
+fprintf(fid, '%1.3e\t', time_rbrp);
+fprintf(fid, '\n');
+
+fprintf(fid, 'CPQR\n');
 fprintf(fid, '%1.3e\t', res_cpqr);
-fprintf(fid, '\n');
-fprintf(fid, '%1.3e\t', err_randCPQR);
-fprintf(fid, '\n');
-fprintf(fid, '%1.3e\t', err_randCPQR_OS);
-fprintf(fid, '\n');
-fprintf(fid, '%1.3e\t', err_randLUPP);
-fprintf(fid, '\n');
-fprintf(fid, '%1.3e\t', err_randLUPP_OS);
-fprintf(fid, '\n');
-fprintf(fid, '%1.3e\t', err_sqn);
 fprintf(fid, '\n');
 fprintf(fid, '%1.3e\t', time_cpqr);
 fprintf(fid, '\n');
+
+fprintf(fid, 'randomized CPQR\n');
+fprintf(fid, '%1.3e\t', err_randCPQR);
+fprintf(fid, '\n');
 fprintf(fid, '%1.3e\t', time_randCPQR);
+fprintf(fid, '\n');
+
+fprintf(fid, 'randomized CPQR-OS\n');
+fprintf(fid, '%1.3e\t', err_randCPQR_OS);
 fprintf(fid, '\n');
 fprintf(fid, '%1.3e\t', time_randCPQR_OS);
 fprintf(fid, '\n');
+
+fprintf(fid, 'randomized LUPP\n');
+fprintf(fid, '%1.3e\t', err_randLUPP);
+fprintf(fid, '\n');
 fprintf(fid, '%1.3e\t', time_randLUPP);
+fprintf(fid, '\n');
+
+fprintf(fid, 'randomized LUPP-OS\n');
+fprintf(fid, '%1.3e\t', err_randLUPP_OS);
 fprintf(fid, '\n');
 fprintf(fid, '%1.3e\t', time_randLUPP_OS);
 fprintf(fid, '\n');
+
+fprintf(fid, 'randomized SqNorm\n');
+fprintf(fid, '%1.3e\t', err_sqn);
+fprintf(fid, '\n');
 fprintf(fid, '%1.3e\t', time_sqn);
-fprintf(fid, '\n');
-fprintf(fid, '%5d\t', rank_rbrp(1:m));
-fprintf(fid, '\n');
-fprintf(fid, '%1.3e\t', res_rbrp(1:m));
-fprintf(fid, '\n');
-fprintf(fid, '%1.3e\t', time_rbrp);
 fprintf(fid, '\n');
 fclose(fid);

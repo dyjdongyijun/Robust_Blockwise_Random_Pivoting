@@ -38,7 +38,7 @@ function [sk, rd, T, flops] = randLUPP_OS(A, r, c)
     T = R1 \ (Q1' * Z(:, r+1:end));
     t3 = toc;
 
-    if 1
+    if 0
         fprintf("\n------------------\n")
         fprintf("Profile of randLUPP-OS")
         fprintf("\n------------------\n")
