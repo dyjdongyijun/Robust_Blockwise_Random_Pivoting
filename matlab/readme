@@ -1,0 +1,10 @@
+
+This folder contains matlab files that can be used to reproduce results in our paper.
+
+driver.m is the driver file. If a GPU is available, it will be used to execute all methods.
+
+Three test matrices are implemented in Matrix_GMM.m, Matrix_SNN.m, and Matrix_Gaussian_exp.m. (mnist and cifar10 can be downloaded online.)
+
+RBRP.m is the implementation of the new method.
+
+
