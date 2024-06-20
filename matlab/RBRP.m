@@ -14,7 +14,7 @@ diags = vecnorm(A).^2;
 res = [];
 time = [];
 rank = [];
-nrmA = norm(A, 'fro');
+nrmA2 = sum(diags); 
 
 p = min(m,n);
 
@@ -39,9 +39,6 @@ while i<p+1
     else
         % Sampling
         w = diags(i:n);
-        %w = sqrt(diags(i:n));
-        %prob = w/sum(w);
-        %J  = unique(randsmpl(prob,bs,1)) +i-1;
 
         if isgpuarray(A)
             w = gather(w);
@@ -50,29 +47,32 @@ while i<p+1
         J = datasample(i:n, bs, 'Replace', false, 'Weights', w);
     end
 
-    % CPQR on the panel
+    % select a subset of columns
     X = A(:,J);
 
     % Gram Schmidt
     I1 = 1:i-1;
     X = X - Q(:,I1) * R(I1,J);
-    %X = X - Q(:,I1) * (Q(:,I1)' * X);
 
+    % CPQR on the panel
     [Q2, R2, p2] = qr(X, 'econ', 'vector');
-    J = J(p2); % reorder selected indices
+
+    % reorder selected indices
+    J = J(p2); 
+
 
     % filter
     v = sum(R2.^2, 2);
     v = cumsum(flip(v));
     bs = sum(v > v(end)/blk);
 
-
-    %bs = length(J);
+    % working set
     I2 = i:i+bs-1;
+
+    % remaining set
     I3 = i+bs:n;
 
-
-    % update outputs
+    % update global QR
     J = J(1:bs);
     Q(:,I2)  = Q2(:,1:bs);
     R(I2,I2) = R2(1:bs,1:bs);
@@ -81,29 +81,22 @@ while i<p+1
     K1 = setdiff(I2, J, 'stable'); % indices out
     K2 = setdiff(J, I2, 'stable'); % indices in
 
-    %K1 = J;
-    %K2 = I2;
-
-
-    % swamp columns of A
-    T = A(:,K1);
-    A(:,K1) = A(:,K2);
-    A(:,K2) = T;
-
-    % swamp columns of R
-    T = R(I1,K1);
-    R(I1,K1) = R(I1,K2);
-    R(I1,K2) = T;
-
-    % swamp columns of diags
-    T = diags(K1);
-    diags(K1) = diags(K2);
-    diags(K2) = T;
 
     % swamp columns of perm
-    T = perm(K1);
-    perm(K1) = perm(K2);
-    perm(K2) = T;
+    T = perm(J);
+    perm(K2) = perm(K1);
+    perm(I2) = T;
+    
+    % swamp columns of R
+    T = R(I1,J);
+    R(I1,K2) = R(I1,K1);
+    R(I1,I2) = T;
+
+    % swamp columns of A
+    A(:,K2) = A(:,K1);
+
+    % swamp columns of diags
+    diags(K2) = diags(K1);
 
 
     % post processing
@@ -127,7 +120,7 @@ while i<p+1
     i = i + bs;
 end
 
-res = res ./ nrmA^2;
+res = res ./ nrmA2;
 time = cumsum(time);
 rank = cumsum(rank);
 end
