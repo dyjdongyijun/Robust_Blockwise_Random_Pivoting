@@ -19,6 +19,9 @@ $ pip install -r pip_pkg.txt
 |   |-- python 
 |   |   |-- RBRP.ipynb # main Python experiment demo
 |   |   |-- gmm_dpp.npy # pre-computed results of k-DPP (and other methods) on a GMM matrix
+|   |-- Matlab
+|   |   |-- driver.m # main Matlab experiment demo
+|   |   |-- RBRP.m # implementation of the new method
 |   |-- figs # output figures 
 |   |-- conda_env.yml # conda environment
 |   |-- pip_pkg.yml # pip packages
