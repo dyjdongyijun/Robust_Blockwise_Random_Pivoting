@@ -14,27 +14,28 @@
 #include <numeric>      // std::iota
 
 
-void RandCPQR_column(const double *A, int m, int n, int k,
-    std::vector<int> &sk, std::vector<int> &rd, double *&T, double &flops) {
+void RandCPQR(const double *A, int m, int n, int k,
+    int *h_sk, int *h_rd, double *&T, double &flops) {
 
-  Timer t;
+  assert( k <= n );
 
-  t.start();
+  Timer t; t.start();
   dvec Gmat(k*m);
   dvec Ymat(k*n);
-  CHECK_CUDA( cudaMalloc((void **) &T,  sizeof(double)*k*(n-k) ));
+  if (!T)  CHECK_CUDA( cudaFree(T)  );
+  CHECK_CUDA( cudaMalloc((void **) &T,  sizeof(double)*k*(n-k) ));  
   t.stop(); double t4 = t.elapsed_time();
   
 
   t.start();
-  Random::Gaussian(Gmat, 0., 1.);
+  Random::Gaussian(Gmat, 0., 1./std::sqrt(m));
   t.stop(); double t0 = t.elapsed_time();
   
   
   t.start();
   double *G = thrust::raw_pointer_cast( Gmat.data() );
   double *Y = thrust::raw_pointer_cast( Ymat.data() );
-  GEMM(k, n, m, G, A, Y);
+  GEMM(k, n, m, G, A, Y); // Y = G * A
   t.stop(); double t1 = t.elapsed_time();
   //print(Ymat, k, n, "Y");
 
@@ -67,10 +68,9 @@ void RandCPQR_column(const double *A, int m, int n, int k,
   t.start();
   for (int i=0; i<n; i++)
     jpvt[i]--;
-  sk.resize(k);
-  rd.resize(n-k);
-  std::copy_n(jpvt, k, sk.begin());
-  std::copy_n(jpvt+k, n-k, rd.begin());
+  
+  std::copy_n( jpvt, k, h_sk );
+  std::copy_n( jpvt+k, n-k, h_rd );
   thrust::copy_n( dptr(R12), k*(n-k), dptr(T) );
   t.stop(); double t5 = t.elapsed_time();
 
@@ -83,12 +83,12 @@ void RandCPQR_column(const double *A, int m, int n, int k,
     <<"--------------------\n"
     <<"  RandCPQR\n"
     <<"--------------------\n"
-    <<"Alloc: "<<t4<<std::endl
-    <<"Rand:  "<<t0<<std::endl
+    //<<"Alloc: "<<t4<<std::endl
+    //<<"Rand:  "<<t0<<std::endl
     <<"GEMM:  "<<t1<<std::endl
     <<"CPQR:  "<<t2<<std::endl
     <<"Solve: "<<t3<<std::endl
-    <<"Copy:  "<<t5<<std::endl
+    //<<"Copy:  "<<t5<<std::endl
     <<"--------------------\n"
     <<"Total: "<<t0+t1+t2+t3+t4+t5<<std::endl
     <<"--------------------\n"

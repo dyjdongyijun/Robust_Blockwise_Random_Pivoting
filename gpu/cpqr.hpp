@@ -1,10 +1,6 @@
-#ifndef cpqr_hpp
-#define cpqr_hpp
+#ifndef _cpqr_hpp
+#define _cpqr_hpp
 
-#include <vector>
-
-void CPQR(int m, int n, double *A, 
-    const std::vector<int> ranks, std::vector<double> &err, std::vector<double> &t_ranks, 
-    double &t_cpqr, double &flops);
+void CPQR(int m, int n, double *dA, int ld);
 
 #endif

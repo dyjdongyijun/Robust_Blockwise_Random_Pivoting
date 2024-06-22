@@ -15,7 +15,7 @@ void RandLUPP(const double *A, int m, int n, int k,
 
   // over-sampling 
   int r = 1.*k;
-  assert( r >= k );
+  assert( r >= k && k <= n );
 
   Timer t;
 
@@ -39,13 +39,15 @@ void RandLUPP(const double *A, int m, int n, int k,
   t.start();
   double *G  = thrust::raw_pointer_cast( Gmat.data() );
   double *Yr = thrust::raw_pointer_cast( Ymat.data() );
-  GEMM(r, m, n, G, A, Yr); // Y = G * A
+  GEMM(r, n, m, G, A, Yr); // Y = G * A
   t.stop(); double t1 = t.elapsed_time();
+
 
   t.start();
   // Yk = Y(1:k,:)', transpose of the first k rows
   dvec Ykmat(n*k);  double *Yk  = thrust::raw_pointer_cast(Ykmat.data());
   dvec dummat(n*k); double *dum = thrust::raw_pointer_cast(dummat.data()); // dummy variable
+  
   double one = 1.0, zero = 0.0;
   auto const& handle = Handle_t::instance();
   CUBLAS_CHECK( cublasDgeam( 
@@ -54,7 +56,6 @@ void RandLUPP(const double *A, int m, int n, int k,
         &one, Yr, r,
         &zero, dum, n,
         Yk, n) );
-  
 
   dvec work; // working memory for LU
   ivec ipiv( std::min(n,k) ); // local permutation
@@ -119,13 +120,13 @@ void RandLUPP(const double *A, int m, int n, int k,
     <<"--------------------\n"
     <<"  RandLUPP\n"
     <<"--------------------\n"
-    <<"Alloc: "<<t4<<std::endl
-    <<"Rand:  "<<t0<<std::endl
+    //<<"Alloc: "<<t4<<std::endl
+    //<<"Rand:  "<<t0<<std::endl
     <<"GEMM:  "<<t1<<std::endl
     <<"LUPP:  "<<t2<<std::endl
     <<"Solve: "<<t3<<std::endl
-    <<"Copy:  "<<t5<<std::endl
-    <<"Perm:  "<<t6<<std::endl
+    //<<"Copy:  "<<t5<<std::endl
+    //<<"Perm:  "<<t6<<std::endl
     <<"--------------------\n"
     <<"Total: "<<t0+t1+t2+t3+t4+t5+t6<<std::endl
     <<"--------------------\n"

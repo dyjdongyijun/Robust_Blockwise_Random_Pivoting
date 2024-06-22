@@ -11,8 +11,8 @@ CXX = icpc -diag-disable=10441
 
 CFLAGS ?= -O3 -fPIC -Wall -Wno-unused -DEIGEN_USE_MKL_ALL
 #CFLAGS ?= -g -fPIC -Wall -Wno-unused -DEIGEN_USE_MKL_ALL
-#VFLAGS ?= -arch=compute_70 -code=sm_70 -Xcompiler -fPIC 
-VFLAGS ?= -DPROF -arch=compute_70 -code=sm_70 -Xcompiler -fPIC 
+VFLAGS ?= -arch=compute_70 -code=sm_70 -Xcompiler -fPIC 
+#VFLAGS ?= -DPROF -arch=compute_70 -code=sm_70 -Xcompiler -fPIC 
 VFLAGS += -I$(MAGMA_ROOT)/include -DMAGMA_WITH_MKL -DHAVE_CUBLAS
 
 

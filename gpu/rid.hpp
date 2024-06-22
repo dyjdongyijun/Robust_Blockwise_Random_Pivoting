@@ -12,11 +12,14 @@ void RandLUPP(const double *A, int m, int n, int rank,
 void RandLUPP_OS(const double *A, int m, int n, int rank,
     int *&, int *&, double *&, double&);
 
+// notice that h_sk and h_rd are pointers to host/cpu memmory
+void RandCPQR(const double *A, int m, int n, int rank,
+    int *h_sk, int *h_rd, double *&, double&);
 
-#include <vector>
+void RandCPQR_OS(const double *A, int m, int n, int rank,
+    int *h_sk, int *h_rd, double *&, double&);
 
-void RandCPQR_column(const double *A, int m, int n, int rank,
-    std::vector<int> &, std::vector<int> &, double *&, double&);
+
 
 
 #endif

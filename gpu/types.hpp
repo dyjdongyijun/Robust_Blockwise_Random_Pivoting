@@ -5,7 +5,7 @@
 #include <thrust/device_ptr.h>
 //#include <thrust/reduce.h>
 //#include <thrust/functional.h>
-//#include <thrust/binary_search.h>
+#include <thrust/binary_search.h>
 
 template <typename T>
 using tvec = thrust::device_vector<T>;
